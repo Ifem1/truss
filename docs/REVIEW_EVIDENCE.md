@@ -1,48 +1,47 @@
 # Review Evidence
 
-**Status: in progress; not submission-ready.** A previous contract deployment and exact source verification are complete. A live evidence-classification flaw was fixed in the current repository source, which still needs deployment and fresh final-contract proof.
+**Status: contract deployed and live lifecycle proof complete on Studionet 61999; not submission-ready because the latest local HEAD has not been pushed and Vercel production provenance/browser transaction UX proof remain outstanding.** Vercel deployment is intentionally left to the user.
 
-## Local evidence as of 2026-10-06
+## Local verification (2026-10-06)
 
-- Direct Mode: 30 passed, 0 skipped, using the local GenLayer test harness and synthetic fixtures.
+- Contract/GenVM compile and lint plus SDK semantic validation: passed.
+- Direct Mode: 31 passed, 0 skipped.
 - Python unit tests: 2 passed.
 - Repository preflight: passed.
-- GenVM AST lint: passed (3 checks).
-- GenVM AST lint and SDK semantic validation: passed with `npm run contracts:check` (3 AST checks; `TrussRegistry`, 11 methods). Validation uses GenVM `v0.3.0-rc7`, whose runner hash matches the existing contract dependency header; linter 0.11.0 is not compatible with the newer manager artifact archive layout. The check script now pins the matching artifact version.
-- Frontend dependencies: `package-lock.json` generated from existing package pins; `npm ci` passed (459 packages added). Declared versions were not changed.
 - TypeScript typecheck: passed.
-- Production frontend build: passed with Next.js 16.3.7; Next's required tsconfig normalization was retained.
-- Browser tests: 7 passed with `npm run test:e2e` against the production build. Covered product routes, injected wallet connect/disconnect, rejected connection signature, switching from another chain to Studionet, wrong-network state after a chain change, and account/chain change events. Full transaction submitted/accepted/finalized, recovery, and finalized re-read UX are not yet proven by browser tests.
-- Network lock: repository-local CLI `0.39.1` reports Studionet chain `61999`, and the canonical RPC returned `0xf22f` to a direct read-only `eth_chainId` request.
-- Studionet contract deployment: finalized at `0x95800b68742FD083ECaee37FFE93Ad3333C7CF01`; transaction [0x8e145c29833c52d03c40da362f5d9301e84799a7343b1d4fc197de8a6ba77295](https://explorer-studio.genlayer.com/tx/0x8e145c29833c52d03c40da362f5d9301e84799a7343b1d4fc197de8a6ba77295).
-- Previous deployment source verification: exact byte match passed using direct `gen_getContractCode` RPC bytes (35,680 bytes on each side; SHA-256 `d8a5c5fb78068480fdbb829ea251254c6d9c07b84d0e65e6bd4a8f2b92e04ce0`). Current repository contract source changed afterward and has not yet been redeployed.
-- Live ADMITTED lifecycle: not achieved. The candidate was INSUFFICIENT_EVIDENCE; no head movement occurred.
-- Live REJECTED lifecycle: synthetic candidate `truss-live-20261006-reject1` finalized REJECTED because `9.9.9` conflicts with pinned package version `0.1.0`; head stayed empty.
-- Live retry lifecycle: attempt 1 finalized INSUFFICIENT_EVIDENCE; a new evidence round and reassessment finalized INSUFFICIENT_EVIDENCE. Both attempts and rounds remain stored; head stayed empty.
-- Live duplicate/replay, stale predecessor and invalid scope proofs: incomplete.
-- Production hosting and source provenance: pending. The Vercel build address is available in `docs/DEPLOYMENT.md`.
+- Production frontend build: passed.
+- Browser tests: 7 passed. They cover product routes, injected wallet connect/disconnect, rejected connection signature, network switching, wrong-network gate, and account/chain change events. Submitted/accepted/finalized transaction UX, refresh recovery and finalized state re-read remain unproven in browser tests.
+- Repository-local GenLayer CLI: `0.39.1`; Studionet RPC chain ID check: `61999` (`0xf22f`). No Studio Dev or 61997 use.
+- Historical Actions run [37500893962](https://github.com/Ifem1/truss/actions/runs/37500893962) passed the then-pushed source. Current local follow-up HEAD is not pushed; no claim is made about CI for that HEAD.
 
-## Deployment evidence fields
+## Final Studionet deployment
 
-- Branch: `master` in the exact provided extracted folder.
-- Remote: `https://github.com/Ifem1/truss.git`. Commit `c5e6690b3d85200de83b5edb7ecf761db477d747` is pushed and passed Actions run [37500893962](https://github.com/Ifem1/truss/actions/runs/37500893962). Local follow-up commit `244cba2` is not pushed: cached GitHub credentials are invalid, and a fresh Ifem1 device authorization is pending.
-- Repository contract source SHA-256: `d8a5c5fb78068480fdbb829ea251254c6d9c07b84d0e65e6bd4a8f2b92e04ce0`.
-- Contract address / deployment transaction: `0x95800b68742FD083ECaee37FFE93Ad3333C7CF01` / `0x8e145c29833c52d03c40da362f5d9301e84799a7343b1d4fc197de8a6ba77295` (FINALIZED, MAJORITY_AGREE).
-- Deployed source SHA-256 / exact byte match: `d8a5c5fb78068480fdbb829ea251254c6d9c07b84d0e65e6bd4a8f2b92e04ce0` / passed.
-- Policy transaction: `0xdf366551ff1139f1983f6d0201d75049308de1da4f76c0c1a8b43de93ade078d`.
-- Candidate open / attempt 1: `0x41e6a739108ff0bf6577bbf4cd8be8e9ed7afefcc73d80d8384f1af0e122330c` / `0x51de356307799c8d340332a2d602d8b77901fefccc1597036df0baae92fc8db0` (FINALIZED INSUFFICIENT_EVIDENCE).
-- Evidence round 2 / reassessment: `0x4cb5f9a6c7f1bbab023416ff5be8774de20791d9e2c52ebda0152bd8d01110ce` / `0x542c12b1ea683dcec46bf4add12440ff2aa9e6e7561053e1001329b49d2e9204` (FINALIZED INSUFFICIENT_EVIDENCE; 2 attempts, 2 rounds).
-- Rejected candidate open / assessment: `0xf6aa3aa02ca35b7bce29d15414df8a2fe142d42aa3cda162da78002466d10621` / `0x63702751c8395b769747fb0b299fe62c31bdfd08e1a6b20f69f02a2e85a19385` (FINALIZED REJECTED; head unchanged).
-- Unexpected CLI account attempt: `0x996fa986c090a944edd3eff6b860682bd6ed44ea5100a28870e6f34b019102cc` came from `0x7876e9f76f32925c212528d57bc9dfe5e34bcc07`, not a supplied wallet. It did not change state: latest finalized reads show 1 attempt/1 round at that point. Further writes used an explicit second-key signer whose derived address was checked as `0xa49c51d759790116d451f256654dd9f0549d341f`.
-- Live negative security checks on the previous deployment: replay tx `0x5524a539e154486e06748fd5bbb07914292e837c870c738f4450f6c048309e1a` and invalid-scope tx `0x12427c0c4e061b88244822a1da0f4fcf9fa06d2567be2fa43fa2dfbe22dbf864` finalized without storing candidates; unauthorized successor-policy tx `0x77a2c1d19b9c73e32ab219074f1ea7f57887cdf465712f429fe2cfe327119b13` finalized without changing the active policy.
-- The second candidate's REJECTED result, first retry result, and retry reassessment all used the previous source version. They are exploratory proofs and must be repeated against the replacement final deployment.
-- Production URL / provenance: none.
-- Deployment wallet: explicitly supplied throwaway account `truss-deployer`, address `0x39680bd423437c0eaa18493629652821ec672c61`; deployment completed.
-- Live-cycle wallet: explicitly supplied throwaway account `truss-live-cycle`, address `0xa49c51d759790116d451f256654dd9f0549d341f`, unlocked with `978.919199999999999375 GEN` at last check.
-- Source-hardening follow-up: successful non-empty retrievals can no longer be classified `UNAVAILABLE`; omitted/failed classifications remain neutral or unavailable and cannot support admission. Prompt now gives a strict complete JSON schema for every evidence URL. Direct Mode is 31/31 passing. This source revision is pending deployment.
-- Deployment script refuses to run without explicitly named and authorized account/address environment variables and a verified active, unlocked account/address/positive balance readback. The finality parser matches the stable CLI's `status_name`/`result_name` fields and source verification compares the entire decoded RPC response.
-- GitHub Actions: run [37500307163](https://github.com/Ifem1/truss/actions/runs/37500307163) passed every step of the `verify` job, including `npm ci`, contract checks, 30 Direct Mode tests, typecheck, build, and 7 browser tests. Prior run `37497458411` failed before job creation due to malformed setup-node YAML indentation; that indentation is fixed.
-- Frontend dependency pin warning: npm reports a peer-optional `@types/node` range warning from nested Vite 7.3.6; the install, typecheck, build and browser tests nevertheless passed.
-- Remaining evidence limitation: SDK redirect behavior is not observable through the pinned `gl.nondet.web.get` interface; automatic redirect following cannot be ruled out.
+- Chain: Studionet `61999`; RPC `https://studio.genlayer.com/api`.
+- Contract: `0xEf2aF888D4e764678d97a1EC38e7519047440fFb`.
+- Deployment tx: [0x5609cb13936ae6d497b3278b6aeab6afc523c425073f140c672b9e48843ba83d](https://explorer-studio.genlayer.com/tx/0x5609cb13936ae6d497b3278b6aeab6afc523c425073f140c672b9e48843ba83d), `FINALIZED`, `MAJORITY_AGREE`.
+- Deployed/repository contract SHA-256: `eff129604484b9d449660e265a435e4a1677a1c6548908cf7eee04068a0be5d3`; byte-for-byte comparison of the complete decoded `gen_getContractCode` response passed.
+- Source commit at deployment: `a40145063f28544dab62dfde0453b5b7729b1739`.
+- Previous deployment `0x95800b68742FD083ECaee37FFE93Ad3333C7CF01` is superseded and must not be configured for production.
 
-Replace this report only with evidence collected from the final HEAD and the exact final deployment. Do not promote local mocked tests into live-chain claims.
+## Fresh live proof against the final contract
+
+All fixtures are public, synthetic test evidence. They do not attest to a real release, security review, test run or build provenance. Each listed transaction finalized on the exact contract above.
+
+- Policy create: [0x9f3f40637e62f4375ebcf21e5e2821ba8684aab8804031ea24f2f688c601f1a4](https://explorer-studio.genlayer.com/tx/0x9f3f40637e62f4375ebcf21e5e2821ba8684aab8804031ea24f2f688c601f1a4).
+- **ADMITTED:** candidate `truss-final-20261006-admit1`; open [0x59e4bc4624d8ecb1de6a431cd4d6ea3b17148f8d367ad2ac0801eb3bc412b050](https://explorer-studio.genlayer.com/tx/0x59e4bc4624d8ecb1de6a431cd4d6ea3b17148f8d367ad2ac0801eb3bc412b050), assessment [0xb590ad84852881ae1d99d2d3334935d0ef15795fa419ee882e8b95291f8affda](https://explorer-studio.genlayer.com/tx/0xb590ad84852881ae1d99d2d3334935d0ef15795fa419ee882e8b95291f8affda). Finalized as `ADMITTED`; head advanced to this candidate only after the assessment finalized.
+- **REJECTED:** candidate `truss-final-20261006-reject`; open [0x66be4cf52c9b7625ee9e089572464bd9ee77703c162803b895a01eda6f2c655e](https://explorer-studio.genlayer.com/tx/0x66be4cf52c9b7625ee9e089572464bd9ee77703c162803b895a01eda6f2c655e), assessment [0xe86c7696f5e982da1176aed885a1b7182689a73cf556da3072d5b0f07e07f795](https://explorer-studio.genlayer.com/tx/0xe86c7696f5e982da1176aed885a1b7182689a73cf556da3072d5b0f07e07f795). Candidate label `9.9.9` conflicts with pinned package version `0.1.0`; head remained on the admitted candidate.
+- **Retry/history:** candidate `truss-final-20261006-retry`; open [0x352b1c4130aa7fe5f003a427a14aa4fd00f407e4c9a4ab3e7afa6aaf7e127d04](https://explorer-studio.genlayer.com/tx/0x352b1c4130aa7fe5f003a427a14aa4fd00f407e4c9a4ab3e7afa6aaf7e127d04); attempt 1 [0x7733cb554dfdc8c9ba94b939c25cbcaece48870d80cf92b1c15d7a4b2095f953](https://explorer-studio.genlayer.com/tx/0x7733cb554dfdc8c9ba94b939c25cbcaece48870d80cf92b1c15d7a4b2095f953) finalized `INSUFFICIENT_EVIDENCE`; append round 2 [0x3157f3b032c955ad17fec46988d6ac868583080704bc767977a6d1d6f880d540](https://explorer-studio.genlayer.com/tx/0x3157f3b032c955ad17fec46988d6ac868583080704bc767977a6d1d6f880d540); attempt 2 [0x07808ddac5c2ab9dfa8894bd4f1a4efc78b1fa56ad341adec497a9db86303087](https://explorer-studio.genlayer.com/tx/0x07808ddac5c2ab9dfa8894bd4f1a4efc78b1fa56ad341adec497a9db86303087) finalized `REJECTED` after the newly available source showed the `0.1.1` label mismatch. Final state stores 2 rounds and both attempts (`INSUFFICIENT_EVIDENCE`, `REJECTED`); head did not move.
+- **Duplicate/replay:** [0x4a2f627d04204b954711a9ea7728c36680b4150681f3ff9ee5ad89f8f61b526b](https://explorer-studio.genlayer.com/tx/0x4a2f627d04204b954711a9ea7728c36680b4150681f3ff9ee5ad89f8f61b526b) finalized without storing a candidate for an already-used release coordinate.
+- **Invalid evidence scope:** [0xf427d9215edfca1cec72affda64c36a6cfdc79ebc5c10eb30137127dffd71b1c](https://explorer-studio.genlayer.com/tx/0xf427d9215edfca1cec72affda64c36a6cfdc79ebc5c10eb30137127dffd71b1c) finalized without storing the foreign-host candidate.
+- **Unauthorized policy mutation:** [0x62ca3eff9ef239891aca082be8a83f4e708319b10a32af810c1d78a443d1fe79](https://explorer-studio.genlayer.com/tx/0x62ca3eff9ef239891aca082be8a83f4e708319b10a32af810c1d78a443d1fe79) finalized; active policy remained `truss-final-20261006-policy`.
+- **Stale predecessor race:** both candidates were opened against `truss-final-20261006-admit1`: A open [0xaa9782649a3fc70bae4a8469236979da6043644dd9fdef7ad74923e02420391a](https://explorer-studio.genlayer.com/tx/0xaa9782649a3fc70bae4a8469236979da6043644dd9fdef7ad74923e02420391a), B open [0x0013b5bcf17649d6c6190bb2d8884e89ea0a7eea15ff0f30e7ed95dc5d1c4e4c](https://explorer-studio.genlayer.com/tx/0x0013b5bcf17649d6c6190bb2d8884e89ea0a7eea15ff0f30e7ed95dc5d1c4e4c). A assessment [0x53960a357f10d8cd601ac6587b60ca2cfd834ab47569ae6fe860c31fea72cea6](https://explorer-studio.genlayer.com/tx/0x53960a357f10d8cd601ac6587b60ca2cfd834ab47569ae6fe860c31fea72cea6) finalized `ADMITTED`, advancing head to A. B assessment [0x1334ef381776c31f724a90121141645c7a3ef8e32a9a0633f9ef35b36d8a0a2c](https://explorer-studio.genlayer.com/tx/0x1334ef381776c31f724a90121141645c7a3ef8e32a9a0633f9ef35b36d8a0a2c) finalized `REJECTED` as stale; the head remained A.
+
+An earlier malformed live fixture attempted to use `TEST_STATUS` although the frozen policy requires only `RELEASE_IDENTITY`; its transaction finalized with a contract rollback and did not store a candidate. It is not counted as a product lifecycle result. All subsequent writes used explicit signer objects and verified addresses; no CLI default account was used.
+
+## Remaining limitations
+
+- Vercel production URL, deployment ID and source provenance have not been supplied. The frontend is configured to use the final contract address in the public deployment manifest; the production environment must set `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS=0xEf2aF888D4e764678d97a1EC38e7519047440fFb`.
+- The seven browser tests do not yet drive a full transaction finality/recovery flow.
+- Current local follow-up commits have not been pushed because an authenticated `Ifem1` GitHub session is required. Remote remains exactly `https://github.com/Ifem1/truss.git`.
+- Pinned SDK web fetch does not expose redirect controls; automatic redirect-following cannot be ruled out.
+- Live fixture content is synthetic and must never be presented as production release/security evidence.

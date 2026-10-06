@@ -4,14 +4,14 @@
   "chainId": 61999,
   "rpc": "https://studio.genlayer.com/api",
   "explorer": "https://explorer-studio.genlayer.com",
-  "contract": "",
-  "deploymentTransaction": "",
-  "deploymentExplorerUrl": "",
+  "contract": "0xEf2aF888D4e764678d97a1EC38e7519047440fFb",
+  "deploymentTransaction": "0x5609cb13936ae6d497b3278b6aeab6afc523c425073f140c672b9e48843ba83d",
+  "deploymentExplorerUrl": "https://explorer-studio.genlayer.com/tx/0x5609cb13936ae6d497b3278b6aeab6afc523c425073f140c672b9e48843ba83d",
   "repositorySourceSha256": "eff129604484b9d449660e265a435e4a1677a1c6548908cf7eee04068a0be5d3",
-  "deployedSourceSha256": "",
-  "sourceCommit": "",
-  "sourceVerification": "PENDING_REDEPLOY",
-  "status": "REDEPLOY_PENDING",
+  "deployedSourceSha256": "eff129604484b9d449660e265a435e4a1677a1c6548908cf7eee04068a0be5d3",
+  "sourceCommit": "a40145063f28544dab62dfde0453b5b7729b1739",
+  "sourceVerification": "BYTE_MATCH",
+  "status": "DEPLOYED_FINALIZED_BYTE_MATCH",
   "frontend": {
     "productionUrl": "",
     "vercelDeploymentId": "",
@@ -24,5 +24,28 @@
     "sourceSha256": "d8a5c5fb78068480fdbb829ea251254c6d9c07b84d0e65e6bd4a8f2b92e04ce0",
     "sourceCommit": "c5e6690b3d85200de83b5edb7ecf761db477d747",
     "sourceVerification": "BYTE_MATCH"
+  },
+  "liveProof": {
+    "status": "COMPLETE_SYNTHETIC_STUDIONET_61999",
+    "contract": "0xEf2aF888D4e764678d97a1EC38e7519047440fFb",
+    "policyKey": "truss-final-20261006-policy",
+    "policyTransaction": "0x9f3f40637e62f4375ebcf21e5e2821ba8684aab8804031ea24f2f688c601f1a4",
+    "admittedCandidate": "truss-final-20261006-admit1",
+    "admittedOpenTransaction": "0x59e4bc4624d8ecb1de6a431cd4d6ea3b17148f8d367ad2ac0801eb3bc412b050",
+    "admittedAssessmentTransaction": "0xb590ad84852881ae1d99d2d3334935d0ef15795fa419ee882e8b95291f8affda",
+    "rejectedCandidate": "truss-final-20261006-reject",
+    "rejectedAssessmentTransaction": "0xe86c7696f5e982da1176aed885a1b7182689a73cf556da3072d5b0f07e07f795",
+    "retryCandidate": "truss-final-20261006-retry",
+    "retryTransactions": [
+      "0x7733cb554dfdc8c9ba94b939c25cbcaece48870d80cf92b1c15d7a4b2095f953",
+      "0x3157f3b032c955ad17fec46988d6ac868583080704bc767977a6d1d6f880d540",
+      "0x07808ddac5c2ab9dfa8894bd4f1a4efc78b1fa56ad341adec497a9db86303087"
+    ],
+    "duplicateRejectionTransaction": "0x4a2f627d04204b954711a9ea7728c36680b4150681f3ff9ee5ad89f8f61b526b",
+    "invalidScopeRejectionTransaction": "0xf427d9215edfca1cec72affda64c36a6cfdc79ebc5c10eb30137127dffd71b1c",
+    "unauthorizedMutationRejectionTransaction": "0x62ca3eff9ef239891aca082be8a83f4e708319b10a32af810c1d78a443d1fe79",
+    "stalePredecessorAssessmentTransaction": "0x1334ef381776c31f724a90121141645c7a3ef8e32a9a0633f9ef35b36d8a0a2c",
+    "syntheticFixtures": true,
+    "explorer": "https://explorer-studio.genlayer.com"
   }
 }

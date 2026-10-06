@@ -70,7 +70,7 @@ if (!balanceMatch || Number(balanceMatch[1]) <= 0) {
 
 const source = await readFile("contracts/truss_registry.py");
 const sourceSha256 = createHash("sha256").update(source).digest("hex");
-const git = spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" });
+const git = spawnSync("git", ["-c", `safe.directory=${process.cwd()}`, "rev-parse", "HEAD"], { encoding: "utf8" });
 const manifest = {
   project: "TRUSS", network: "studionet", chainId: CHAIN_ID, rpc: RPC, explorer: EXPLORER,
   cliVersion, sourceSha256, sourceCommit: git.status === 0 ? git.stdout.trim() : "",

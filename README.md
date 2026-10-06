@@ -77,7 +77,7 @@ Each policy selects its required roles and the admissible host/path scopes for e
 
 ## Mandatory completion evidence
 
-The final repository is not submission-ready until it contains verifiable evidence of:
+Submission readiness also requires verifiable evidence of:
 
 1. a real Studionet 61999 deployment;
 2. exact deployed-source verification;
@@ -93,6 +93,8 @@ See `TRUSS_CODEX_MASTER_HANDOFF.txt` before modifying anything.
 
 ## Current implementation status
 
-The repository is **not submission-ready**. The previous contract source from commit `c5e6690b3d85200de83b5edb7ecf761db477d747` is finalized on Studionet 61999 at `0x95800b68742FD083ECaee37FFE93Ad3333C7CF01` with an exact byte match, but a live assessment exposed incomplete evidence-role classifications. The contract prompt and fail-closed classification semantics have since been hardened in the repository and require a fresh final deployment before the earlier live proof can count. The updated Direct Mode suite is 31/31 passing; Python unit tests are 2/2, preflight, semantic validation, TypeScript, production build and 7 browser tests pass. Live synthetic REJECTED, retry, replay, invalid-scope and unauthorized-mutation checks were run on the previous deployment. A fresh ADMITTED and stale-predecessor proof on the final deployment, plus Vercel deployment/provenance, remain outstanding. See [review evidence](docs/REVIEW_EVIDENCE.md) and [deployment status](docs/DEPLOYMENT.md).
+**Current status:** the final source is deployed to Studionet 61999 at `0xEf2aF888D4e764678d97a1EC38e7519047440fFb`; deployment finalized and the complete deployed source byte-matched repository source SHA-256 `eff129604484b9d449660e265a435e4a1677a1c6548908cf7eee04068a0be5d3`. Fresh synthetic live proofs against that exact deployment cover admitted-head advancement, rejection without head movement, an insufficient-evidence attempt plus appended round and preserved reassessment, duplicate/replay, invalid scope, unauthorized policy mutation, and stale-predecessor protection. Synthetic evidence is not real-world release or security evidence.
+
+Local verification is green: 31 Direct Mode tests, 2 unit tests, preflight, contract validation, TypeScript typecheck, production build and 7 browser tests. The browser suite does not yet exercise full transaction finality and refresh recovery. The local follow-up HEAD still needs to be pushed to the exact `Ifem1/truss` remote after GitHub authentication as `Ifem1`. Vercel deployment and source provenance are left for the user, so the project remains **not submission-ready** until the final source is published and frontend provenance is recorded. See [review evidence](docs/REVIEW_EVIDENCE.md) and [deployment status](docs/DEPLOYMENT.md).
 
 The pinned SDK's web fetch API does not expose redirect controls. An observed 3xx is rejected, but automatic redirect-following cannot be ruled out. This is an unresolved evidence-scope limitation.

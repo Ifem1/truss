@@ -1,21 +1,24 @@
-# Live Studionet Test Plan
+# Live Studionet Test Record
 
-Target is Studionet chain `61999` only.
+Target: Studionet `61999` only, RPC `https://studio.genlayer.com/api`.
 
 ## Status
 
-Not run. No TRUSS contract has been deployed. The Direct Mode fixtures are public-looking synthetic data served by mocks and are labeled as such; they are not live-chain or real-world release evidence.
+Live proof is complete against the finalized, byte-matched contract at `0xEf2aF888D4e764678d97a1EC38e7519047440fFb`. The scenarios use public synthetic fixtures and do not establish real-world release, security, test or provenance claims. Transaction hashes and explorer links are in [REVIEW_EVIDENCE.md](REVIEW_EVIDENCE.md).
 
-## Required proof after deployment
+- ADMITTED candidate finalized and advanced the head.
+- REJECTED candidate finalized without moving the head.
+- Retryable INSUFFICIENT_EVIDENCE attempt followed by an appended round and a second assessment; both rounds and attempts remain stored. The second result is REJECTED due the pinned version mismatch.
+- Duplicate coordinate and invalid host scope were rejected without candidate storage.
+- Non-owner policy mutation was rejected without changing the active policy.
+- Two candidates opened against one predecessor; the first admitted, the second finalized REJECTED as stale, and the head stayed on the first.
 
-Record transaction hashes, explorer links, finalized receipts, contract state before/after and the exact contract address for each lifecycle.
+## Deployment and verification
 
-1. **ADMITTED:** create policy, open exact candidate, assess, wait for `FINALIZED`, prove `ADMITTED` and prove the head advances only after finality.
-2. **REJECTED:** submit a synthetic fixture that violates one frozen criterion, finalize, prove `REJECTED` and prove the head remains unchanged.
-3. **Retryable:** finalize `INSUFFICIENT_EVIDENCE` or `CONFLICTING_EVIDENCE`; append a distinct role-bound round; reassess; prove both attempts and both rounds remain stored.
-4. **Replay:** reject duplicate policy/candidate/release coordinates.
-5. **Authorization:** reject a non-owner policy mutation/successor.
-6. **Stale predecessor:** open competing candidates against one head, admit one, and prove the other cannot advance the new head.
-7. **Scope:** reject invalid hosts, foreign subdomains, path-prefix lookalikes, duplicate URLs and out-of-scope sources.
+The deployment receipt finalized successfully and the deployed code returned by `gen_getContractCode` byte-matched the repository contract source. Contract SHA-256: `eff129604484b9d449660e265a435e4a1677a1c6548908cf7eee04068a0be5d3`. The deployment address and receipt are in [deployment-manifest.public.json](../deployment-manifest.public.json).
 
-The public chain proof must be rerun against the final source after every code change. Never invent or reuse transaction hashes.
+## Remaining completion work
+
+The seven browser tests currently cover wallet/network and product-route behavior but not the full transaction submitted → accepted/nonfinal → finalized → authoritative reread lifecycle or refresh recovery. Vercel deployment and production source provenance are left for the user. The current local follow-up HEAD also needs to be pushed to the exact `Ifem1/truss` origin after authenticating as `Ifem1` with workflow permission.
+
+Do not reuse these synthetic fixture results as release evidence. Do not change chain, RPC, contract address, repository owner or origin.
