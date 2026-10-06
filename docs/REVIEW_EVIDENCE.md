@@ -20,7 +20,7 @@
 ## Deployment evidence fields
 
 - Branch: `master` in the exact provided extracted folder.
-- Remote: `https://github.com/Ifem1/truss.git`; authenticated as `Ifem1`, with pushed HEAD `6e189b1502246e6e6e5ad45047da2b9f65c5b679`. A new CI run is pending after workflow syntax repair.
+- Remote: `https://github.com/Ifem1/truss.git`; authenticated as `Ifem1`, with `master` pushed. GitHub Actions run `37500307163` passed every required step on the commit preceding this evidence-only update; subsequent changes are limited to updating this record and checksums.
 - Repository contract source SHA-256: `d8a5c5fb78068480fdbb829ea251254c6d9c07b84d0e65e6bd4a8f2b92e04ce0` (not deployed).
 - Contract address / deployment transaction: none.
 - Deployed source SHA-256 / exact byte match: not applicable; no deployment.
@@ -28,7 +28,7 @@
 - Production URL / provenance: none.
 - Active local CLI account observed (not used): label `stablematch-throwaway`, address `0x39680bd423437c0eaa18493629652821ec672c61`, balance `954.489409999999999788 GEN`, keystore locked. TRUSS authorization and ownership were not established.
 - Deployment script now refuses to run without explicitly named and authorized account/address environment variables and a verified active, unlocked account/address/positive balance readback.
-- GitHub Actions: run [37499733882](https://github.com/Ifem1/truss/actions/runs/37499733882) passed every step of the `verify` job on commit `581b8bd146acd717c21dd074fee4a95221bdd5ce`, including `npm ci`, contract checks, 30 Direct Mode tests, typecheck, build, and 7 browser tests. Prior run `37497458411` failed before job creation due to malformed setup-node YAML indentation; that indentation is fixed.
+- GitHub Actions: run [37500307163](https://github.com/Ifem1/truss/actions/runs/37500307163) passed every step of the `verify` job, including `npm ci`, contract checks, 30 Direct Mode tests, typecheck, build, and 7 browser tests. Prior run `37497458411` failed before job creation due to malformed setup-node YAML indentation; that indentation is fixed.
 - Frontend dependency pin warning: npm reports a peer-optional `@types/node` range warning from nested Vite 7.3.6; the install, typecheck, build and browser tests nevertheless passed.
 - Remaining evidence limitation: SDK redirect behavior is not observable through the pinned `gl.nondet.web.get` interface; automatic redirect following cannot be ruled out.
 
