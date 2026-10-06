@@ -57,6 +57,9 @@ const accountInfo = run("Verify explicitly authorized active deployment account"
 if (!accountInfo.toLowerCase().includes(authorizedDeployAddress) || !/active:\s*true/i.test(accountInfo)) {
   throw new Error("The selected CLI account is not active or its public address does not match the explicitly authorized TRUSS deployer address.");
 }
+if (!/status:\s*['"]unlocked['"]/i.test(accountInfo)) {
+  throw new Error("The explicitly authorized deployment account is locked; unlock it through the GenLayer CLI before deploying.");
+}
 const balanceMatch = accountInfo.match(/balance:\s*['"]?([\d.]+)\s+GEN/i);
 if (!balanceMatch || Number(balanceMatch[1]) <= 0) {
   throw new Error("The explicitly authorized deployer account has no verified positive Studionet GEN balance.");
