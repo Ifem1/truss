@@ -12,15 +12,15 @@
 - Frontend dependencies: `package-lock.json` generated from existing package pins; `npm ci` passed (459 packages added). Declared versions were not changed.
 - TypeScript typecheck: passed.
 - Production frontend build: passed with Next.js 16.3.7; Next's required tsconfig normalization was retained.
-- Browser tests: 3 passed with `npm run test:e2e`; `scripts/run-e2e.mjs` starts the built production server, invokes Playwright, and shuts the server down cleanly on Windows.
+- Browser tests: 7 passed with `npm run test:e2e` against the production build. Covered product routes, injected wallet connect/disconnect, rejected connection signature, switching from another chain to Studionet, wrong-network state after a chain change, and account/chain change events. Full transaction submitted/accepted/finalized, recovery, and finalized re-read UX are not yet proven by browser tests.
 - Network lock: repository-local CLI `0.39.1` reports Studionet chain `61999`, and the canonical RPC returned `0xf22f` to a direct read-only `eth_chainId` request.
 - Studionet deployment and live proof: not run.
-- Production hosting and source provenance: not run; not pursued per the user's latest direction.
+- Production hosting and source provenance: pending. The user will deploy to Vercel after a real final contract address is available.
 
 ## Deployment evidence fields
 
-- Branch: `master` in the exact provided extracted folder; local checkpoint commits exist, including this updated evidence record.
-- Remote: `https://github.com/Ifem1/truss.git` (configured; remote refs and push access could not be verified).
+- Branch: `master` in the exact provided extracted folder.
+- Remote: `https://github.com/Ifem1/truss.git`; authenticated as `Ifem1`, with pushed HEAD `6e189b1502246e6e6e5ad45047da2b9f65c5b679`. A new CI run is pending after workflow syntax repair.
 - Repository contract source SHA-256: `d8a5c5fb78068480fdbb829ea251254c6d9c07b84d0e65e6bd4a8f2b92e04ce0` (not deployed).
 - Contract address / deployment transaction: none.
 - Deployed source SHA-256 / exact byte match: not applicable; no deployment.
@@ -28,7 +28,7 @@
 - Production URL / provenance: none.
 - Active local CLI account observed (not used): label `stablematch-throwaway`, address `0x39680bd423437c0eaa18493629652821ec672c61`, balance `954.489409999999999788 GEN`, keystore locked. TRUSS authorization and ownership were not established.
 - Deployment script now refuses to run without explicitly named and authorized account/address environment variables and a verified active, unlocked account/address/positive balance readback.
-- GitHub: exact `https://github.com/Ifem1/truss.git` exists and was verified empty. Push was rejected because the current OAuth token lacks `workflow` scope for `.github/workflows/ci.yml`. The approval reviewer rejected refreshing the token with that persistent additional scope as not yet authorized. Remote refs remain empty; no push completed.
+- GitHub Actions: run `37497458411` for the prior commit started and failed before creating jobs; the `setup-node` `with` indentation was malformed. The workflow indentation is fixed, `npm install` is replaced by `npm ci`, and the resulting commit still needs a fresh successful Actions run.
 - Frontend dependency pin warning: npm reports a peer-optional `@types/node` range warning from nested Vite 7.3.6; the install, typecheck, build and browser tests nevertheless passed.
 - Remaining evidence limitation: SDK redirect behavior is not observable through the pinned `gl.nondet.web.get` interface; automatic redirect following cannot be ruled out.
 

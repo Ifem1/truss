@@ -93,6 +93,6 @@ See `TRUSS_CODEX_MASTER_HANDOFF.txt` before modifying anything.
 
 ## Current implementation status
 
-The repository has meaningful local coverage, but it is **not submission-ready**. Direct Mode is 30/30 passing with synthetic fixtures; Python unit tests are 2/2 passing; preflight, GenVM semantic validation, npm clean install, TypeScript typecheck, production build and all 3 browser tests pass. No contract has been deployed and no live transaction has been made. Production hosting is not being pursued per the user's latest direction. See [review evidence](docs/REVIEW_EVIDENCE.md) and [deployment status](docs/DEPLOYMENT.md).
+The repository has meaningful local coverage, but it is **not submission-ready**. Direct Mode is 30/30 passing with synthetic fixtures; Python unit tests are 2/2 passing; preflight, GenVM semantic validation, npm clean install, TypeScript typecheck, production build and all 7 current browser tests pass. Contract reads explicitly select the latest finalized state. No contract has been deployed and no live transaction has been made. The user will deploy the frontend to Vercel after a real contract address is available. See [review evidence](docs/REVIEW_EVIDENCE.md) and [deployment status](docs/DEPLOYMENT.md).
 
 The pinned SDK's web fetch API does not expose redirect controls. An observed 3xx is rejected, but automatic redirect-following cannot be ruled out. This is an unresolved evidence-scope limitation.

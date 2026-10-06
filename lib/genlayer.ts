@@ -1,5 +1,6 @@
 "use client";
 import { createClient } from "genlayer-js";
+import { TransactionHashVariant } from "genlayer-js/types";
 import { studionet } from "genlayer-js/chains";
 import { NETWORK } from "@/lib/config";
 
@@ -57,7 +58,7 @@ export function walletClient(address: `0x${string}`) {
 
 export async function readContract<T>(address: string, functionName: string, args: unknown[] = []) {
   if (!address) throw new Error("TRUSS contract address is not configured.");
-  return readClient().readContract({ address: address as `0x${string}`, functionName, args } as never) as Promise<T>;
+  return readClient().readContract({ address: address as `0x${string}`, functionName, args, transactionHashVariant: TransactionHashVariant.LATEST_FINAL } as never) as Promise<T>;
 }
 
 export async function writeContract(account: `0x${string}`, address: string, functionName: string, args: unknown[] = []) {
