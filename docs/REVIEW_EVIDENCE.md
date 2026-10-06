@@ -28,7 +28,7 @@
 - Production URL / provenance: none.
 - Active local CLI account observed (not used): label `stablematch-throwaway`, address `0x39680bd423437c0eaa18493629652821ec672c61`, balance `954.489409999999999788 GEN`, keystore locked. TRUSS authorization and ownership were not established.
 - Deployment script now refuses to run without explicitly named and authorized account/address environment variables and a verified active, unlocked account/address/positive balance readback.
-- GitHub Actions: run `37497458411` for the prior commit started and failed before creating jobs; the `setup-node` `with` indentation was malformed. The workflow indentation is fixed, `npm install` is replaced by `npm ci`, and the resulting commit still needs a fresh successful Actions run.
+- GitHub Actions: run [37499733882](https://github.com/Ifem1/truss/actions/runs/37499733882) passed every step of the `verify` job on commit `581b8bd146acd717c21dd074fee4a95221bdd5ce`, including `npm ci`, contract checks, 30 Direct Mode tests, typecheck, build, and 7 browser tests. Prior run `37497458411` failed before job creation due to malformed setup-node YAML indentation; that indentation is fixed.
 - Frontend dependency pin warning: npm reports a peer-optional `@types/node` range warning from nested Vite 7.3.6; the install, typecheck, build and browser tests nevertheless passed.
 - Remaining evidence limitation: SDK redirect behavior is not observable through the pinned `gl.nondet.web.get` interface; automatic redirect following cannot be ruled out.
 
