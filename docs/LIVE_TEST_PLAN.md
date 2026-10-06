@@ -19,6 +19,6 @@ The deployment receipt finalized successfully and the deployed code returned by 
 
 ## Remaining completion work
 
-The seven browser tests currently cover wallet/network and product-route behavior but not the full transaction submitted → accepted/nonfinal → finalized → authoritative reread lifecycle or refresh recovery. Vercel deployment and production source provenance are left for the user. The current local follow-up HEAD also needs to be pushed to the exact `Ifem1/truss` origin after authenticating as `Ifem1` with workflow permission.
+Ten browser tests now cover wallet/network behavior, product routes, submitted-but-nonfinal waiting, finality, authoritative state rereads, reload recovery, rejected signatures and finalized rollback failure. They use controlled RPC fixtures and do not mutate Studionet. Vercel deployment and production source provenance are left for the user.
 
 Do not reuse these synthetic fixture results as release evidence. Do not change chain, RPC, contract address, repository owner or origin.

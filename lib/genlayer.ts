@@ -72,8 +72,19 @@ export async function writeContract(account: `0x${string}`, address: string, fun
 
 export async function waitFinalized(hash: `0x${string}`) {
   const receipt = await readClient().waitForTransactionReceipt({ hash: hash as never, status: "FINALIZED", retries: 360, interval: 5000 } as never);
-  if (receipt.statusName !== "FINALIZED" && receipt.status !== 7) throw new Error("Transaction did not reach FINALIZED state.");
-  if (receipt.txExecutionResultName !== "FINISHED_WITH_RETURN") throw new Error(`Transaction finalized without a successful execution (${receipt.txExecutionResultName ?? "unknown result"}).`);
+  const result = receipt as unknown as {
+    status?: number;
+    statusName?: string;
+    status_name?: string;
+    result_name?: string;
+    consensus_data?: { leader_receipt?: Array<{ mode?: string; execution_result?: string; result?: { status?: string; payload?: unknown } }> };
+  };
+  if ((result.statusName ?? result.status_name) !== "FINALIZED" && result.status !== 7) throw new Error("Transaction did not reach FINALIZED state.");
+  const leaders = result.consensus_data?.leader_receipt ?? [];
+  const finalLeader = [...leaders].reverse().find((entry) => entry.mode === "leader") ?? leaders.at(-1);
+  if (result.result_name !== "MAJORITY_AGREE" || finalLeader?.execution_result !== "SUCCESS" || finalLeader.result?.status !== "return") {
+    throw new Error("Transaction finalized without a successful contract return.");
+  }
   return receipt;
 }
 

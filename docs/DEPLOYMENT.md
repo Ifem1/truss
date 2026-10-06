@@ -18,7 +18,9 @@ Fresh synthetic lifecycle proofs were completed on the final contract: ADMITTED/
 
 ## Reproducible pre-deployment gates
 
-The final source passed repository preflight, contract compile/lint and SDK validation, Direct Mode, unit tests, TypeScript typecheck, production frontend build and browser tests before deployment. At that point Direct Mode was 31/31, unit tests 2/2 and browser tests 7/7. The deployment script checks the live RPC chain ID equals `0xf22f`, verifies local CLI `0.39.1`, requires explicit account and expected address environment variables, verifies that account is active/unlocked/funded before signing, waits for `FINALIZED`, fetches deployed code and compares exact bytes.
+The final contract source passed repository preflight, contract compile/lint and SDK validation, Direct Mode, unit tests, TypeScript typecheck, production frontend build and browser tests before deployment. Post-deployment reruns passed: Direct Mode 31/31, unit tests 2/2, browser tests 10/10. Browser transaction-flow tests use controlled RPC fixtures and do not submit live transactions. The deployment script checks the live RPC chain ID equals `0xf22f`, verifies local CLI `0.39.1`, requires explicit account and expected address environment variables, verifies that account is active/unlocked/funded before signing, waits for `FINALIZED`, fetches deployed code and compares exact bytes.
+
+The frontend defaults to the final public contract address `0xEf2aF888D4e764678d97a1EC38e7519047440fFb`. Vercel may override it with `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS`; no production mock address or mock transaction path is included. The finalized transaction reader checks the receipt's `status_name` and the successful leader return under `consensus_data.leader_receipt`, matching the pinned SDK's observed Studionet response.
 
 Semantic contract validation uses the GenVM runner version matching the existing contract dependency header. The pinned manager artifact layout is incompatible with the legacy linter's expected archive path; the checked validation command pins the compatible runner and passed AST lint plus SDK semantics.
 
@@ -26,7 +28,7 @@ Semantic contract validation uses the GenVM runner version matching the existing
 
 Vercel is intentionally left to the user. Configure these project environment variables before building/deploying:
 
-- `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS=0xEf2aF888D4e764678d97a1EC38e7519047440fFb`
+- `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS=0xEf2aF888D4e764678d97a1EC38e7519047440fFb` (optional; this is the built-in default)
 - `NEXT_PUBLIC_GENLAYER_RPC=https://studio.genlayer.com/api` (optional; this is the default)
 - `NEXT_PUBLIC_GENLAYER_EXPLORER=https://explorer-studio.genlayer.com` (optional; this is the default)
 
@@ -34,7 +36,7 @@ After deployment, record the production URL, Vercel deployment ID and deployed s
 
 ## Repository publishing
 
-The exact origin in this extracted folder is `https://github.com/Ifem1/truss.git`. The current local follow-up HEAD is not yet pushed; GitHub authentication must resolve to `Ifem1` with the `workflow` scope before publishing `.github/workflows/ci.yml`. Do not push as another account or change the destination.
+The exact origin in this extracted folder is `https://github.com/Ifem1/truss.git`. Published checkpoints use only the authenticated `Ifem1` identity. Check the latest Actions run for the final pushed HEAD before treating CI as green.
 
 ## Known limitation
 

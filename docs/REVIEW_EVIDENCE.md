@@ -1,6 +1,6 @@
 # Review Evidence
 
-**Status: contract deployed and live lifecycle proof complete on Studionet 61999; not submission-ready because the latest local HEAD has not been pushed and Vercel production provenance/browser transaction UX proof remain outstanding.** Vercel deployment is intentionally left to the user.
+**Status: contract deployed, live lifecycle proof complete on Studionet 61999, and browser transaction/finality flows verified; Vercel production provenance remains outstanding.** Vercel deployment is intentionally left to the user.
 
 ## Local verification (2026-10-06)
 
@@ -10,9 +10,10 @@
 - Repository preflight: passed.
 - TypeScript typecheck: passed.
 - Production frontend build: passed.
-- Browser tests: 7 passed. They cover product routes, injected wallet connect/disconnect, rejected connection signature, network switching, wrong-network gate, and account/chain change events. Submitted/accepted/finalized transaction UX, refresh recovery and finalized state re-read remain unproven in browser tests.
+- Browser tests: 10 passed. They cover product routes, injected wallet connect/disconnect, rejected connection and transaction signatures, network switching, wrong-network gate, account/chain changes, submitted-but-nonfinal waiting, finalized contract-state reread, reload recovery, and finalized contract rollback handling. Transaction tests use controlled RPC fixtures; they do not sign or mutate live chain state.
+- Frontend finality handling uses the actual GenLayer JS 1.1.8 receipt shape: `status_name`, `result_name`, and the successful leader return under `consensus_data.leader_receipt`. The SDK does not expose `txExecutionResultName` on this Studionet receipt; that incorrect assumption has been removed.
 - Repository-local GenLayer CLI: `0.39.1`; Studionet RPC chain ID check: `61999` (`0xf22f`). No Studio Dev or 61997 use.
-- Historical Actions run [37500893962](https://github.com/Ifem1/truss/actions/runs/37500893962) passed the then-pushed source. Current local follow-up HEAD is not pushed; no claim is made about CI for that HEAD.
+- Actions run [37537130932](https://github.com/Ifem1/truss/actions/runs/37537130932) passed every required job on commit `01f4cb90e072f7185a6f20b2c30aba972ee53163`. The subsequent frontend finality fix and expanded 10-case browser suite are locally green and await their own push-triggered Actions run. Earlier run [37500893962](https://github.com/Ifem1/truss/actions/runs/37500893962) also passed its then-pushed source.
 
 ## Final Studionet deployment
 
@@ -40,8 +41,7 @@ An earlier malformed live fixture attempted to use `TEST_STATUS` although the fr
 
 ## Remaining limitations
 
-- Vercel production URL, deployment ID and source provenance have not been supplied. The frontend is configured to use the final contract address in the public deployment manifest; the production environment must set `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS=0xEf2aF888D4e764678d97a1EC38e7519047440fFb`.
-- The seven browser tests do not yet drive a full transaction finality/recovery flow.
-- Current local follow-up commits have not been pushed because an authenticated `Ifem1` GitHub session is required. Remote remains exactly `https://github.com/Ifem1/truss.git`.
-- Pinned SDK web fetch does not expose redirect controls; automatic redirect-following cannot be ruled out.
+- Vercel production URL, deployment ID and source provenance have not been supplied. The frontend defaults to the real final contract address; `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS` remains available as an override.
+- The browser transaction tests exercise frontend state transitions with controlled RPC fixtures; the actual live-chain lifecycles are separately recorded above.
+- The pinned SDK web fetch does not expose redirect controls; automatic redirect-following cannot be ruled out.
 - Live fixture content is synthetic and must never be presented as production release/security evidence.
