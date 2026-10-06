@@ -4,17 +4,25 @@
   "chainId": 61999,
   "rpc": "https://studio.genlayer.com/api",
   "explorer": "https://explorer-studio.genlayer.com",
-  "contract": "0x95800b68742FD083ECaee37FFE93Ad3333C7CF01",
-  "deploymentTransaction": "0x8e145c29833c52d03c40da362f5d9301e84799a7343b1d4fc197de8a6ba77295",
-  "deploymentExplorerUrl": "https://explorer-studio.genlayer.com/tx/0x8e145c29833c52d03c40da362f5d9301e84799a7343b1d4fc197de8a6ba77295",
-  "repositorySourceSha256": "d8a5c5fb78068480fdbb829ea251254c6d9c07b84d0e65e6bd4a8f2b92e04ce0",
-  "deployedSourceSha256": "d8a5c5fb78068480fdbb829ea251254c6d9c07b84d0e65e6bd4a8f2b92e04ce0",
-  "sourceCommit": "c5e6690b3d85200de83b5edb7ecf761db477d747",
-  "sourceVerification": "BYTE_MATCH",
-  "status": "DEPLOYED_FINALIZED_BYTE_MATCH",
+  "contract": "",
+  "deploymentTransaction": "",
+  "deploymentExplorerUrl": "",
+  "repositorySourceSha256": "eff129604484b9d449660e265a435e4a1677a1c6548908cf7eee04068a0be5d3",
+  "deployedSourceSha256": "",
+  "sourceCommit": "",
+  "sourceVerification": "PENDING_REDEPLOY",
+  "status": "REDEPLOY_PENDING",
   "frontend": {
     "productionUrl": "",
     "vercelDeploymentId": "",
     "sourceCommit": ""
+  },
+  "previousDeployment": {
+    "contract": "0x95800b68742FD083ECaee37FFE93Ad3333C7CF01",
+    "deploymentTransaction": "0x8e145c29833c52d03c40da362f5d9301e84799a7343b1d4fc197de8a6ba77295",
+    "deploymentExplorerUrl": "https://explorer-studio.genlayer.com/tx/0x8e145c29833c52d03c40da362f5d9301e84799a7343b1d4fc197de8a6ba77295",
+    "sourceSha256": "d8a5c5fb78068480fdbb829ea251254c6d9c07b84d0e65e6bd4a8f2b92e04ce0",
+    "sourceCommit": "c5e6690b3d85200de83b5edb7ecf761db477d747",
+    "sourceVerification": "BYTE_MATCH"
   }
-}\n
+}

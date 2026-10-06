@@ -79,6 +79,17 @@ const manifest = {
 await writeFile(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 const deployArgs = ["--no-install", "genlayer", "deploy", "--contract", "contracts/truss_registry.py", "--rpc", RPC];
 console.log(`\nDeploying final contract source to Studionet ${CHAIN_ID} (${RPC})`);
+run("Reconfirm explicitly authorized active account immediately before signing", "npx", [
+  "--no-install", "genlayer", "account", "use", deployAccountName,
+]);
+const finalAccountInfo = run("Verify active signer immediately before deployment", "npx", [
+  "--no-install", "genlayer", "account", "show", "--account", deployAccountName, "--rpc", RPC,
+]);
+if (!finalAccountInfo.toLowerCase().includes(authorizedDeployAddress)
+    || !/active:\s*true/i.test(finalAccountInfo)
+    || !/status:\s*['"]unlocked['"]/i.test(finalAccountInfo)) {
+  throw new Error("The explicitly authorized account is no longer active and unlocked immediately before deployment.");
+}
 const deployment = spawnSync("npx", deployArgs, { encoding: "utf8", shell: process.platform === "win32", stdio: ["inherit", "pipe", "pipe"] });
 if (deployment.stdout) process.stdout.write(deployment.stdout);
 if (deployment.stderr) process.stderr.write(deployment.stderr);
@@ -87,6 +98,9 @@ manifest.status = deployment.status === 0 && !deployment.error ? "DEPLOYMENT_COM
 await writeFile(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 if (deployment.error) throw deployment.error;
 if (deployment.status !== 0) throw new Error(`GenLayer deployment failed with exit code ${deployment.status}`);
+if (!new RegExp(`sender:\\s*['"]?${authorizedDeployAddress}`, "i").test(manifest.deploymentOutput)) {
+  throw new Error("Deployment output sender does not match the explicitly authorized deployment account.");
+}
 
 const txMatch = manifest.deploymentOutput.match(/Transaction Hash['"]?\s*:\s*['"]?(0x[0-9a-fA-F]{64})/i);
 const addressMatch = manifest.deploymentOutput.match(/Contract Address['"]?\s*:\s*['"]?(0x[0-9a-fA-F]{40})/i);

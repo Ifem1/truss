@@ -184,6 +184,16 @@ def test_retry_appends_new_round_and_preserves_each_attempt(direct_vm, direct_de
         c.assess_candidate("candidate-001")
 
 
+def test_successful_nonempty_fetch_cannot_be_classified_unavailable(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    open_candidate(c)
+    result = assess(direct_vm, c, response(identity_role="UNAVAILABLE", test_role="UNAVAILABLE"),
+                    status=200, body="Public non-empty synthetic evidence content.")
+    assert all(item["http_status"] == 200 and item["content_digest"] for item in result["evidence_states"])
+    assert [item["state"] for item in result["evidence_states"]] == ["NEUTRAL", "NEUTRAL"]
+    assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
+
+
 def test_conflicting_role_evidence_is_derived_deterministically(direct_vm, direct_deploy):
     c = setup(direct_vm, direct_deploy)
     open_candidate(c)
