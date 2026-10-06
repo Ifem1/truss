@@ -51,6 +51,9 @@ const authorizedDeployAddress = process.env.TRUSS_DEPLOY_AUTHORIZED_ADDRESS?.tri
 if (!deployAccountName || !authorizedDeployAddress || !/^0x[0-9a-f]{40}$/.test(authorizedDeployAddress)) {
   throw new Error("Set TRUSS_DEPLOY_ACCOUNT_NAME and the explicitly authorized TRUSS_DEPLOY_AUTHORIZED_ADDRESS before deployment; no default/local account will be used.");
 }
+run("Activate explicitly authorized deployment account", "npx", [
+  "--no-install", "genlayer", "account", "use", deployAccountName,
+]);
 const accountInfo = run("Verify explicitly authorized active deployment account", "npx", [
   "--no-install", "genlayer", "account", "show", "--account", deployAccountName, "--rpc", RPC,
 ]);
