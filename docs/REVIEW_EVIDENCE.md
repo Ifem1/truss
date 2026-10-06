@@ -18,8 +18,8 @@
 
 ## Deployment evidence fields
 
-- Branch: `master` (local repository initialized in the provided extracted folder; no commit yet).
-- HEAD: none.
+- Branch: `master` in the exact provided extracted folder; local checkpoint commits exist, including this updated evidence record.
+- Remote: `https://github.com/Ifem1/truss.git` (configured; remote refs and push access could not be verified).
 - Repository contract source SHA-256: `d8a5c5fb78068480fdbb829ea251254c6d9c07b84d0e65e6bd4a8f2b92e04ce0` (not deployed).
 - Contract address / deployment transaction: none.
 - Deployed source SHA-256 / exact byte match: not applicable; no deployment.
