@@ -95,16 +95,27 @@ manifest.deploymentTransaction = txMatch[1];
 manifest.contractAddress = addressMatch[1];
 
 manifest.finalityOutput = run("Wait for finalized deployment", "npx", ["--no-install", "genlayer", "receipt", manifest.deploymentTransaction, "--status", "FINALIZED", "--rpc", RPC, "--retries", "360", "--interval", "5000"]);
-if (!/statusName:\s*['"]FINALIZED['"]/.test(manifest.finalityOutput)
-    || !/txExecutionResultName:\s*['"]FINISHED_WITH_RETURN['"]/.test(manifest.finalityOutput)) {
+if (!/status_name:\s*['"]FINALIZED['"]/.test(manifest.finalityOutput)
+    || !/result_name:\s*['"]MAJORITY_AGREE['"]/.test(manifest.finalityOutput)) {
   manifest.status = "DEPLOYMENT_NOT_FINALIZED_SUCCESSFULLY";
   await writeFile(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
   throw new Error(`Deployment receipt is not finalized successfully. Inspect ${MANIFEST}.`);
 }
 
-manifest.sourceVerificationOutput = run("Fetch deployed contract source", "npx", ["--no-install", "genlayer", "code", manifest.contractAddress, "--rpc", RPC]);
-manifest.sourceByteMatch = manifest.sourceVerificationOutput.includes(source.toString("utf8"));
-manifest.deployedSourceSha256 = manifest.sourceByteMatch ? sourceSha256 : "";
+const sourceResponse = await fetch(RPC, {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "gen_getContractCode", params: [manifest.contractAddress] }),
+});
+if (!sourceResponse.ok) throw new Error(`Deployed source RPC returned HTTP ${sourceResponse.status}`);
+const sourcePayload = await sourceResponse.json();
+if (sourcePayload?.error || typeof sourcePayload?.result !== "string") {
+  throw new Error(`Could not retrieve deployed source: ${JSON.stringify(sourcePayload?.error ?? sourcePayload)}`);
+}
+const deployedSource = Buffer.from(sourcePayload.result, "base64");
+manifest.sourceVerificationOutput = `gen_getContractCode returned ${deployedSource.length} bytes`;
+manifest.sourceByteMatch = deployedSource.equals(source);
+manifest.deployedSourceSha256 = createHash("sha256").update(deployedSource).digest("hex");
 manifest.sourceVerification = manifest.sourceByteMatch ? "BYTE_MATCH" : "MISMATCH_OR_UNPARSEABLE_OUTPUT";
 manifest.status = manifest.sourceByteMatch ? "DEPLOYED_FINALIZED_BYTE_MATCH" : "DEPLOYED_FINALIZED_SOURCE_MISMATCH_REVIEW_REQUIRED";
 await writeFile(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
