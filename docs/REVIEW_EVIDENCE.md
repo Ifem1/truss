@@ -28,7 +28,7 @@
 - Production URL / provenance: none.
 - Active local CLI account observed (not used): label `stablematch-throwaway`, address `0x39680bd423437c0eaa18493629652821ec672c61`, balance `954.489409999999999788 GEN`, keystore locked. TRUSS authorization and ownership were not established.
 - Deployment script now refuses to run without explicitly named and authorized account/address environment variables and a verified active, unlocked account/address/positive balance readback.
-- GitHub: exact `https://github.com/Ifem1/truss.git` origin is set on this checkout. User says setup is done, but environment verification still fails: cached Ifem1/BeatyXO auth tokens are invalid and `git ls-remote` reports `Repository not found`. No push performed.
+- GitHub: exact `https://github.com/Ifem1/truss.git` origin is set. An approved read-only check authenticated as Ifem1 and showed no `truss` repository in the account's visible list; the exact remote reports `Repository not found`. The normal sandboxed CLI still reports invalid cached tokens. No push performed; repository creation is reserved to the user.
 - Frontend dependency pin warning: npm reports a peer-optional `@types/node` range warning from nested Vite 7.3.6; the install, typecheck, build and browser tests nevertheless passed.
 - Remaining evidence limitation: SDK redirect behavior is not observable through the pinned `gl.nondet.web.get` interface; automatic redirect following cannot be ruled out.
 
