@@ -1,0 +1,16 @@
+{
+  "project": "TRUSS",
+  "network": "studionet",
+  "chainId": 61999,
+  "rpc": "https://studio.genlayer.com/api",
+  "explorer": "https://explorer-studio.genlayer.com",
+  "contract": "",
+  "deploymentTransaction": "",
+  "deploymentExplorerUrl": "",
+  "repositorySourceSha256": "d8a5c5fb78068480fdbb829ea251254c6d9c07b84d0e65e6bd4a8f2b92e04ce0",
+  "deployedSourceSha256": "",
+  "sourceCommit": "",
+  "sourceVerification": "NOT_APPLICABLE_NOT_DEPLOYED",
+  "status": "NOT_DEPLOYED",
+  "frontend": { "productionUrl": "", "vercelDeploymentId": "", "sourceCommit": "" }
+}

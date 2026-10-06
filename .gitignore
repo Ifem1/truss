@@ -1,0 +1,14 @@
+.next/
+.pnpm-store/
+node_modules/
+.env
+.env.local
+.env.generated
+deployment-manifest.generated.json
+playwright-report/
+test-results/
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+*.tsbuildinfo

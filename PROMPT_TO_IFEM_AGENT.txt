@@ -1,0 +1,143 @@
+I have already unzipped the TRUSS package and opened the extracted `truss_ifem_handoff` folder in Codex. Do not clone another copy, do not create a replacement working directory, and do not create the GitHub repository for me.
+
+Read `TRUSS_CODEX_MASTER_HANDOFF.txt` first and treat it as the master specification. Then inspect the entire repository before changing anything, especially:
+
+- README.md
+- DESIGN_SPEC.md
+- contracts/truss_registry.py
+- tests/direct/
+- app/
+- components/
+- lib/
+- docs/ARCHITECTURE.md
+- docs/SECURITY_MODEL.md
+- docs/EVIDENCE_MODEL.md
+- docs/STATE_MACHINE.md
+- docs/LIVE_TEST_PLAN.md
+- docs/DEPLOYMENT.md
+- scripts/preflight.py
+- deploy/deployScript.ts
+- package.json
+- requirements.txt
+
+The final GitHub destination will be:
+
+Ifem1/truss
+
+I will create that repository separately.
+
+Once `Ifem1/truss` exists, set THIS EXACT EXTRACTED FOLDER'S Git origin to that repository only.
+
+Never push TRUSS to `ometere123`.
+Never create a substitute repository.
+Never silently move the work to another owner.
+
+Finish the whole project, not just the contract.
+
+Audit the starter implementation aggressively and fix every actual GenLayer, GenVM, SDK, frontend, security, state-machine, finality and evidence-boundary issue you find. The starter code is a strong implementation direction, not permission to preserve a bug.
+
+STUDIONET 61999 ONLY.
+
+Use:
+- RPC: https://studio.genlayer.com/api
+- Explorer: https://explorer-studio.genlayer.com
+- repository-local GenLayer CLI: 0.39.1
+
+Use `npx --no-install genlayer` so the repository-local CLI wins.
+
+Do not use Studio Dev.
+Do not use chain 61997.
+Do not use my machine's globally installed newer or RC GenLayer CLI.
+Do not switch networks because deployment is easier somewhere else.
+
+NO APPLICATION BACKEND.
+
+Do not add Supabase, Firebase, Express, Railway, Cloudflare Workers, a custom API authority, server database, cron, queue, backend AI, server-controlled signer, centralized crawler or centralized release oracle.
+
+The product architecture must remain:
+
+user
+→ Next.js frontend
+→ injected EIP-1193 wallet
+→ GenLayer Intelligent Contract
+→ validator judgment / contract state
+→ frontend
+
+The frontend must be a serious user-facing product, not a debug panel.
+
+Use Next.js App Router + TypeScript and injected EIP-1193 only. No Privy, WalletConnect, browser snaps, custodial wallet, embedded private keys or backend signer.
+
+TRUSS must remain clean-room original. EXIGENT was inspiration for quality and reviewer rigor only. Do not copy its emergency-authority mechanics, routes, names, four-contract structure, frontend, prompts or wording.
+
+The key V1 product is:
+
+An adopter freezes a software admission policy. A candidate freezes an exact repository, release label, 40-hex commit SHA, predecessor admitted release and role-bound evidence. GenLayer validators independently fetch the frozen evidence and classify whether the exact release satisfies the frozen policy. Deterministic contract logic derives ADMITTED, REJECTED, INSUFFICIENT_EVIDENCE or CONFLICTING_EVIDENCE. Only a finalized ADMITTED result advances the admitted release lineage.
+
+Keep the one-contract architecture unless a real trust/state boundary proves a split is necessary.
+
+The append-only attempt history is non-negotiable. Never overwrite a previous insufficient/conflicting assessment. Every evidence round and every assessment attempt must remain inspectable.
+
+Be hostile to the evidence model. Harden role scopes, URL canonicalization, path-prefix matching, subdomain handling, duplicate evidence, oversized responses, prompt injection, mutable URLs, unavailable sources and contradictory evidence.
+
+Be hostile to release-lineage races. A stale candidate opened against an old predecessor must never advance the head after another candidate has already advanced it.
+
+Do not let an owner directly admit a release.
+
+Do not let an LLM top-level label override inconsistent bounded classifications. Prefer deterministic verdict derivation from identity, criterion and evidence-role classifications.
+
+Run and expand meaningful adversarial Direct Mode tests. Do not chase test count for its own sake.
+
+Before deployment, require:
+- contract compile/lint green;
+- Direct Mode green;
+- preflight green;
+- TypeScript typecheck green;
+- production frontend build green;
+- browser tests green.
+
+Then deploy the FINAL contract source to Studionet 61999.
+
+After deployment, execute fresh real live proof against that exact deployment:
+
+1. a full ADMITTED lifecycle where the current admitted head advances only after finality;
+2. a full REJECTED lifecycle where the admitted head does not move;
+3. a retryable INSUFFICIENT_EVIDENCE or CONFLICTING_EVIDENCE lifecycle, append a new evidence round, reassess, and prove both attempts remain stored;
+4. duplicate/replay rejection;
+5. unauthorized policy mutation rejection;
+6. stale predecessor protection;
+7. invalid evidence-scope rejection.
+
+Use honest public synthetic fixtures where necessary and label them synthetic. Do not pretend synthetic release/security evidence is real-world evidence.
+
+Record every important transaction hash and explorer link.
+
+Verify deployed source against repository source byte-for-byte if the stable 61999 tooling exposes that capability. Commit the source SHA-256 and deployment manifest. Do not claim an exact match unless it was actually verified.
+
+Deploy the frontend to Vercel and prove its source/deployment provenance. The production frontend must read the real final contract address and must not contain production mock paths.
+
+After live deployment, repeat the full test and audit pass so evidence corresponds to the final HEAD.
+
+Keep documentation synchronized with reality. Remove stale claims.
+
+Do not stop because something is difficult. Solve as much as possible directly. If a genuine external blocker remains, leave the repository in the strongest truthful state possible and document the blocker precisely without fabricating proof.
+
+When `Ifem1/truss` exists, push meaningful checkpoints and the final HEAD there only.
+
+At the end, report:
+
+- final branch
+- final HEAD
+- Studionet chain ID
+- contract address
+- deployment transaction
+- deployed source SHA-256
+- whether byte-match verification passed
+- Vercel production URL
+- test counts by category
+- live ADMITTED transaction(s)
+- live REJECTED transaction(s)
+- live retry lifecycle transaction(s)
+- stale-predecessor proof
+- any remaining limitation
+
+Do not declare the project submission-ready until the definition of done in `TRUSS_CODEX_MASTER_HANDOFF.txt` is satisfied.

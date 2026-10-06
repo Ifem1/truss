@@ -1,0 +1,38 @@
+{
+  "name": "truss",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test:direct": "gltest --network localnet tests/direct -v",
+    "test:unit": "python -m pytest tests/unit -q",
+    "test:e2e": "node scripts/run-e2e.mjs",
+    "preflight": "python scripts/preflight.py",
+    "contracts:check": "node scripts/check-contract.mjs",
+    "cli:version": "node scripts/check-cli.mjs",
+    "deploy": "node deploy/deployScript.ts",
+    "source:hash": "node scripts/source-hash.mjs"
+  },
+  "dependencies": {
+    "genlayer-js": "1.1.8",
+    "lucide-react": "0.468.0",
+    "next": "16.3.7",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.0",
+    "@types/node": "22.10.2",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "genlayer": "0.39.1",
+    "typescript": "5.7.2"
+  },
+  "engines": {
+    "node": ">=22.6"
+  }
+}

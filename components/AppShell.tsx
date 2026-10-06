@@ -1,0 +1,2 @@
+import Link from "next/link";import WalletButton from "@/components/WalletButton";
+export default function AppShell({children}:{children:React.ReactNode}){return <><header className="topbar"><Link className="brand" href="/">TRUSS</Link><nav><Link href="/">lineages</Link><Link href="/policy/new">new policy</Link><Link href="/release/new">evaluate release</Link></nav><WalletButton/></header><main className="shell">{children}</main></>}

@@ -1,0 +1,3 @@
+"use client";
+import { useWallet } from "@/components/WalletProvider";
+export default function WalletButton(){const{address,chainId,wrongNetwork,busy,error,connect,disconnect}=useWallet();return <div className="wallet-wrap">{address?<><span className="network-warning">{wrongNetwork?`wrong network · ${chainId??"unknown"}`:"Studionet · 61999"}</span><button className="button secondary" onClick={disconnect}>{address.slice(0,6)}…{address.slice(-4)} · disconnect</button></>:<button className="button" disabled={busy} onClick={()=>void connect()}>{busy?"connecting…":"connect wallet"}</button>}{error?<small className="error-text">{error}</small>:null}</div>}
