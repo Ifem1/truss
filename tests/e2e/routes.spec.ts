@@ -108,13 +108,16 @@ async function fillCandidateForm(page: Page) {
 
 test("landing explains release lineage", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("Software changes.")).toBeVisible();
-  await expect(page.getByRole("link", { name: /create admission policy/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /every release has a lineage/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /create policy/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /progress has a source/i })).toBeVisible();
 });
 
 test("policy form is reachable", async ({ page }) => {
   await page.goto("/policy/new");
-  await expect(page.getByRole("heading", { name: /Define what a release must prove/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /set the standard before the release/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /add criterion/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /release identity/i })).toBeVisible();
 });
 
 test("release form asks for exact commit", async ({ page }) => {
@@ -126,10 +129,45 @@ test("wallet connects, disconnects, and hard-gates a wrong network", async ({ pa
   await installWallet(page);
   await page.goto("/");
   await page.getByRole("button", { name: /connect wallet/i }).click();
-  await expect(page.getByRole("button", { name: /disconnect/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /0x1234…5678/i })).toBeVisible();
   await page.evaluate(() => (window as unknown as { __walletTest: { setChain(v: string): void } }).__walletTest.setChain("0x1"));
-  await expect(page.getByText("wrong network · 1")).toBeVisible();
-  await page.getByRole("button", { name: /disconnect/i }).click();
+  await expect(page.getByText("Wrong network · 1")).toBeVisible();
+  await page.getByRole("button", { name: /0x1234…5678/i }).click();
+  await page.getByRole("menuitem", { name: /disconnect/i }).click();
+  await expect(page.getByRole("button", { name: /connect wallet/i })).toBeVisible();
+});
+
+test("connected wallet menu opens and closes with Escape and outside click", async ({ page }) => {
+  await installWallet(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: /connect wallet/i }).click();
+  const trigger = page.getByRole("button", { name: /0x1234…5678/i });
+  await trigger.click();
+  await expect(page.getByRole("menu", { name: /connected wallet/i })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu", { name: /connected wallet/i })).toHaveCount(0);
+  await trigger.click();
+  await expect(page.getByRole("menu", { name: /connected wallet/i })).toBeVisible();
+  await page.locator("h1").click();
+  await expect(page.getByRole("menu", { name: /connected wallet/i })).toHaveCount(0);
+  await trigger.click();
+  await expect(page.getByRole("menu", { name: /connected wallet/i })).toBeVisible();
+  await page.evaluate(() => (window as unknown as { __walletTest: { setAccounts(v: string[]): void } }).__walletTest.setAccounts(["0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"]));
+  await expect(page.getByRole("menu", { name: /connected wallet/i })).toHaveCount(0);
+});
+
+test("wallet copy does not disconnect; separate Disconnect action does", async ({ page }) => {
+  await installWallet(page);
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/");
+  await page.getByRole("button", { name: /connect wallet/i }).click();
+  const trigger = page.getByRole("button", { name: /0x1234…5678/i });
+  await trigger.click();
+  await page.getByRole("menuitem", { name: /copy address/i }).click();
+  await expect(page.getByRole("menuitem", { name: /copied/i })).toBeVisible();
+  await expect(trigger).toBeVisible();
+  await expect(page.getByRole("menu", { name: /connected wallet/i })).toBeVisible();
+  await page.getByRole("menuitem", { name: /disconnect/i }).click();
   await expect(page.getByRole("button", { name: /connect wallet/i })).toBeVisible();
 });
 
@@ -146,7 +184,7 @@ test("connecting from another chain requests Studionet and switches to chain 619
   await installWallet(page, "0x1");
   await page.goto("/");
   await page.getByRole("button", { name: /connect wallet/i }).click();
-  await expect(page.getByRole("button", { name: /disconnect/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /0x1234…5678/i })).toBeVisible();
   await expect(page.getByText("Studionet · 61999")).toBeVisible();
 });
 
@@ -155,9 +193,9 @@ test("account and chain changes update the wallet state", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /connect wallet/i }).click();
   await page.evaluate(() => (window as unknown as { __walletTest: { setAccounts(v: string[]): void; setChain(v: string): void } }).__walletTest.setAccounts(["0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"]));
-  await expect(page.getByRole("button", { name: /0xabcd…abcd · disconnect/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /0xabcd…abcd/i })).toBeVisible();
   await page.evaluate(() => (window as unknown as { __walletTest: { setChain(v: string): void } }).__walletTest.setChain("0x1"));
-  await expect(page.getByText("wrong network · 1")).toBeVisible();
+  await expect(page.getByText("Wrong network · 1")).toBeVisible();
   await page.evaluate(() => (window as unknown as { __walletTest: { setAccounts(v: string[]): void } }).__walletTest.setAccounts([]));
   await expect(page.getByRole("button", { name: /connect wallet/i })).toBeVisible();
 });
@@ -201,4 +239,23 @@ test("a finalized contract rollback is shown as failure and does not navigate", 
   await expect(page.getByText("transaction or consensus failed")).toBeVisible();
   await expect(page.getByText(/finalized without a successful contract return/i)).toBeVisible();
   await expect(page).toHaveURL(/\/release\/new\?/);
+});
+
+test("wrong network disables release submission", async ({ page }) => {
+  await installWallet(page);
+  await installContractRpc(page);
+  await fillCandidateForm(page);
+  await page.evaluate(() => (window as unknown as { __walletTest: { setChain(v: string): void } }).__walletTest.setChain("0x1"));
+  await expect(page.getByText("Wrong network · 1")).toBeVisible();
+  await expect(page.getByRole("button", { name: /open release candidate/i })).toBeDisabled();
+});
+
+test("mobile viewport has no page overflow and reduced motion stops the flow animation", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /every release has a lineage/i })).toBeVisible();
+  const dimensions = await page.evaluate(() => ({ width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, animationDuration: getComputedStyle(document.querySelector(".flow-line")!).animationDuration }));
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.width);
+  expect(Number.parseFloat(dimensions.animationDuration)).toBeLessThanOrEqual(0.001);
 });
