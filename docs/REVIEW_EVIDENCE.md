@@ -1,6 +1,6 @@
 # Review Evidence
 
-**Status: contract deployed, live lifecycle proof complete on Studionet 61999, and browser transaction/finality flows verified; Vercel production provenance remains outstanding.** Vercel deployment is intentionally left to the user.
+**Status: contract deployed and byte-matched, synthetic live lifecycle proof complete on Studionet 61999, browser transaction/finality flows verified, and production frontend provenance reconciled.**
 
 ## Local verification (2026-10-06)
 
@@ -13,7 +13,20 @@
 - Browser tests: 10 passed. They cover product routes, injected wallet connect/disconnect, rejected connection and transaction signatures, network switching, wrong-network gate, account/chain changes, submitted-but-nonfinal waiting, finalized contract-state reread, reload recovery, and finalized contract rollback handling. Transaction tests use controlled RPC fixtures; they do not sign or mutate live chain state.
 - Frontend finality handling uses the actual GenLayer JS 1.1.8 receipt shape: `status_name`, `result_name`, and the successful leader return under `consensus_data.leader_receipt`. The SDK does not expose `txExecutionResultName` on this Studionet receipt; that incorrect assumption has been removed.
 - Repository-local GenLayer CLI: `0.39.1`; Studionet RPC chain ID check: `61999` (`0xf22f`). No Studio Dev or 61997 use.
-- Actions run [37539979253](https://github.com/Ifem1/truss/actions/runs/37539979253) passed every required job on code commit `34f5a08dccadd99182a329abfe9ad2dd9d0ff302`, including the 31 Direct Mode tests, typecheck, production build, and all 10 browser tests. Earlier run [37537130932](https://github.com/Ifem1/truss/actions/runs/37537130932) passed on commit `01f4cb90e072f7185a6f20b2c30aba972ee53163`; run [37500893962](https://github.com/Ifem1/truss/actions/runs/37500893962) passed its then-pushed source. This record update is documentation-only; its own push-triggered run is checked separately.
+- Actions run [37631407613](https://github.com/Ifem1/truss/actions/runs/37631407613) passed on commit `d6a48386544f92bec18c6a1c507021d6a253fab7`, the exact frontend source commit recorded by Vercel. It passed preflight, local CLI `0.39.1`, contract checks, 2 unit tests, 31 Direct Mode tests, typecheck, production build, and all 10 browser tests. Documentation checkpoint run [37618597497](https://github.com/Ifem1/truss/actions/runs/37618597497) also passed on `28f2eb2d70d61a95c271b13e3335725ab5aded12`. Earlier runs [37539979253](https://github.com/Ifem1/truss/actions/runs/37539979253), [37537130932](https://github.com/Ifem1/truss/actions/runs/37537130932), and [37500893962](https://github.com/Ifem1/truss/actions/runs/37500893962) passed on their then-current commits.
+
+## Production frontend provenance
+
+Verified 2026-10-07 against the authenticated Vercel account `ifem1` and the public production site:
+
+- Production alias: [https://truss-gray.vercel.app](https://truss-gray.vercel.app).
+- Vercel project: `truss` (`prj_mYHmZKlGjgyGxKoIAw2W5fjBcQxQ`); framework preset: Next.js.
+- Production deployment: `dpl_6XzkXw49cZohn6SL9Mn1K6vUfUir`, state `READY`, created `2026-10-07T13:48:06.454Z`; deployment URL `https://truss-436k8jfqj-ifem1s-projects.vercel.app`.
+- Vercel deployment metadata records GitHub repository `Ifem1/truss`, branch `master`, and source commit `d6a48386544f92bec18c6a1c507021d6a253fab7`. The commit exists in that repository. This is the Vercel frontend source commit; it is distinct from contract source commit `a40145063f28544dab62dfde0453b5b7729b1739` and from the final repository evidence HEAD produced by this reconciliation.
+- The production bundle resolves the contract to `0xEf2aF888D4e764678d97a1EC38e7519047440fFb`, chain ID `61999` (`0xf22f`), RPC `https://studio.genlayer.com/api`, and explorer `https://explorer-studio.genlayer.com`. Production frontend configuration uses the canonical `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS` variable; Vercel lists it for Production but marks its stored value sensitive and masks it in environment pulls. The effective value was independently verified from the loaded production bundle and successful read-only `gen_call` requests to that exact contract. The RPC and explorer variables are not configured in the Vercel project; the canonical code defaults are used.
+- Loaded production bundles contain the final contract/network settings and no references to 61997, Studio Dev, Studio Next, or the production mock-state/transaction patterns searched. The frontend source at the recorded commit has `LATEST_FINAL` authoritative reads, injected EIP-1193 wallet use, and separate submitted/nonfinal versus finalized transaction handling.
+- Read-only browser smoke checks: `/`, `/policy/new`, and `/release/new` each returned HTTP 200, displayed TRUSS and the expected route content, and showed no missing-contract configuration error. The home page issued read-only RPC calls to the final contract; observed responses were HTTP 200 with JSON-RPC results and no errors. No wallet signature or write transaction was requested.
+- The automated browser transaction tests use controlled RPC fixtures. The historical live lifecycle transactions listed below were independently executed against Studionet; production smoke checks did not re-run or claim those lifecycle transactions.
 
 ## Final Studionet deployment
 
@@ -41,7 +54,6 @@ An earlier malformed live fixture attempted to use `TEST_STATUS` although the fr
 
 ## Remaining limitations
 
-- Vercel production URL, deployment ID and source provenance have not been supplied. The frontend defaults to the real final contract address; `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS` remains available as an override.
 - The browser transaction tests exercise frontend state transitions with controlled RPC fixtures; the actual live-chain lifecycles are separately recorded above.
 - The pinned SDK web fetch does not expose redirect controls; automatic redirect-following cannot be ruled out.
 - Live fixture content is synthetic and must never be presented as production release/security evidence.

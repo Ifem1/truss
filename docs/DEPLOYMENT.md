@@ -24,15 +24,11 @@ The frontend defaults to the final public contract address `0xEf2aF888D4e764678d
 
 Semantic contract validation uses the GenVM runner version matching the existing contract dependency header. The pinned manager artifact layout is incompatible with the legacy linter's expected archive path; the checked validation command pins the compatible runner and passed AST lint plus SDK semantics.
 
-## Frontend hosting (user-operated Vercel)
+## Production frontend
 
-Vercel is intentionally left to the user. Configure these project environment variables before building/deploying:
+The production frontend is live at [https://truss-gray.vercel.app](https://truss-gray.vercel.app). Vercel reports project `truss` (`prj_mYHmZKlGjgyGxKoIAw2W5fjBcQxQ`), production deployment `dpl_6XzkXw49cZohn6SL9Mn1K6vUfUir` in `READY` state, and GitHub source `Ifem1/truss`, branch `master`, commit `d6a48386544f92bec18c6a1c507021d6a253fab7`. The deployment uses the Next.js framework. Full provenance and smoke-check evidence are in [REVIEW_EVIDENCE.md](REVIEW_EVIDENCE.md) and [deployment-manifest.public.json](../deployment-manifest.public.json).
 
-- `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS=0xEf2aF888D4e764678d97a1EC38e7519047440fFb` (optional; this is the built-in default)
-- `NEXT_PUBLIC_GENLAYER_RPC=https://studio.genlayer.com/api` (optional; this is the default)
-- `NEXT_PUBLIC_GENLAYER_EXPLORER=https://explorer-studio.genlayer.com` (optional; this is the default)
-
-After deployment, record the production URL, Vercel deployment ID and deployed source commit in `deployment-manifest.public.json`. Do not claim production provenance until independently verified.
+The effective production configuration is Studionet chain `61999` (`0xf22f`), RPC `https://studio.genlayer.com/api`, explorer `https://explorer-studio.genlayer.com`, and contract `0xEf2aF888D4e764678d97a1EC38e7519047440fFb`. `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS` is configured on Vercel for Production; Vercel masks the stored value, so the effective address is verified through the deployed JavaScript bundle and read-only calls observed at the production RPC. The RPC and explorer variables are absent from the Vercel environment list and resolve through the canonical defaults in `lib/config.ts`. No production mock state or mock transaction branch is present in the frontend source or deployed bundle.
 
 ## Repository publishing
 
