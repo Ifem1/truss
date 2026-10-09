@@ -20,7 +20,7 @@ contract = (ROOT / "contracts/truss_registry.py").read_text(encoding="utf-8")
 for verdict in ("ADMITTED", "REJECTED", "INSUFFICIENT_EVIDENCE", "CONFLICTING_EVIDENCE"):
     if verdict not in contract:
         errors.append(f"missing verdict {verdict}")
-if "gl.nondet.web.get(url)" not in contract:
+if "gl.nondet.web.get(url, headers=self._web_headers(url))" not in contract:
     errors.append("contract must use the SDK-supported GenLayer web-fetch entry point")
 if "run_nondet_unsafe" not in contract:
     errors.append("validator-independent assessment path is missing")

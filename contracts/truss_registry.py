@@ -480,7 +480,7 @@ class TrussRegistry(gl.Contract):
             role, url = str(item.get("role", "")), str(item.get("url", ""))
             try:
                 # Redirects can escape the frozen role scope after on-chain validation.
-                response = gl.nondet.web.get(url)
+                response = gl.nondet.web.get(url, headers=self._web_headers(url))
                 status = int(getattr(response, "status", 0))
                 if 300 <= status < 400:
                     fetched.append({"role": role, "url": url, "http_status": status, "content": "", "content_digest": "", "error": "redirect responses are not admissible"})
@@ -498,7 +498,7 @@ class TrussRegistry(gl.Contract):
                                     "content_digest": content_digest, "error": "issuer commitment mismatch"})
                     continue
                 body = body_bytes.decode("utf-8", errors="replace")
-                excerpt = body if len(body) <= MAX_PROMPT_EXCERPT else body[:3500] + "\n[...bounded middle omitted...]\n" + body[-3500:]
+                excerpt = body if len(body) <= MAX_PROMPT_EXCERPT else body[:3500] + "\r\n[...bounded middle omitted...]\r\n" + body[-3500:]
                 fetched.append({"role": role, "url": url, "http_status": status, "content": excerpt,
                                 "content_digest": content_digest, "error": ""})
             except Exception as exc:
@@ -507,7 +507,7 @@ class TrussRegistry(gl.Contract):
 
     def _github_json(self, url: str) -> dict:
         try:
-            response = gl.nondet.web.get(url)
+            response = gl.nondet.web.get(url, headers=self._web_headers(url))
             if int(getattr(response, "status", 0)) != 200:
                 return {}
             raw = response.body
@@ -519,7 +519,13 @@ class TrussRegistry(gl.Contract):
         except Exception:
             return {}
 
-    def _github_provenance(self, policy: dict, candidate: dict) -> dict:
+    def _web_headers(self, url: str) -> dict:
+        headers = {"User-Agent": "TRUSS/1.0", "Accept": "*/*"}
+        if str(url).lower().startswith("https://api.github.com/"):
+            headers["Accept"] = "application/vnd.github+json"
+        return headers
+
+    def _github_provenance(self, policy: dict, candidate: dict, evidence: list | None = None) -> dict:
         owner, repo = policy.get("repository_owner", ""), policy.get("repository_name", "")
         sha, label = candidate.get("commit_sha", ""), candidate.get("release_label", "")
         prefix = f"https://api.github.com/repos/{owner}/{repo}"
@@ -536,7 +542,32 @@ class TrussRegistry(gl.Contract):
             tag = self._github_json(f"{prefix}/git/tags/{obj['sha']}")
             target = tag.get("object", {}) if isinstance(tag.get("object"), dict) else {}
             result["tag_resolves_to_commit"] = tag.get("sha") == obj["sha"] and target.get("type") == "commit" and target.get("sha") == sha
+        actions_evidence = next((item for item in (evidence or [])
+                                 if str(item.get("role", "")).upper() == "TEST_STATUS"
+                                 and str(item.get("url", "")).startswith(prefix + "/actions/runs/")), None)
+        if actions_evidence:
+            actions_url = str(actions_evidence.get("url", ""))
+            run = self._github_json(actions_url)
+            run_id = actions_url.rsplit("/", 1)[-1]
+            repository = run.get("repository", {}) if isinstance(run.get("repository"), dict) else {}
+            result.update({
+                "actions_run_exists": str(run.get("id", "")) == run_id,
+                "actions_run_completed": run.get("status") == "completed",
+                "actions_run_success": run.get("conclusion") == "success",
+                "actions_run_head_matches": run.get("head_sha") == sha,
+                "actions_run_repository_matches": str(repository.get("full_name", "")).lower() == f"{owner}/{repo}".lower(),
+                "actions_workflow_path_matches": run.get("path") == ".github/workflows/ci.yml",
+                "actions_event_is_push": run.get("event") == "push",
+            })
         return result
+
+    def _provenance_satisfied(self, provenance: dict) -> bool:
+        required = ["commit_exists", "tag_ref_matches", "tag_resolves_to_commit"]
+        if "actions_run_exists" in provenance:
+            required.extend(["actions_run_exists", "actions_run_completed", "actions_run_success",
+                             "actions_run_head_matches", "actions_run_repository_matches",
+                             "actions_workflow_path_matches", "actions_event_is_push"])
+        return all(provenance.get(field) is True for field in required)
 
     def _normalise(self, raw, policy: dict, evidence: list, fetched: list | None = None) -> dict:
         if not isinstance(raw, dict):
@@ -657,9 +688,9 @@ Every frozen criterion id and every frozen evidence URL must appear exactly once
         raw = gl.nondet.exec_prompt(self._prompt(policy, candidate, fetched), response_format="json")
         assessment = self._normalise(raw, policy, evidence, fetched)
         if policy.get("evidence_issuers"):
-            provenance = self._github_provenance(policy, candidate)
+            provenance = self._github_provenance(policy, candidate, evidence)
             assessment["provenance_checks"] = provenance
-            if not all(provenance.get(field) is True for field in ("commit_exists", "tag_ref_matches", "tag_resolves_to_commit")):
+            if not self._provenance_satisfied(provenance):
                 assessment["identity_match"] = "UNVERIFIED"
                 assessment["identity_finding"] = "Canonical repository commit and tag could not be verified."
         for item in assessment["evidence_states"]:
@@ -748,7 +779,7 @@ Every frozen criterion id and every frozen evidence URL must appear exactly once
         assessment = self._normalise(assessment, policy, evidence, fetched_commitments)
         if policy.get("evidence_issuers"):
             provenance = raw_provenance
-            if not isinstance(provenance, dict) or not all(provenance.get(field) is True for field in ("commit_exists", "tag_ref_matches", "tag_resolves_to_commit")):
+            if not isinstance(provenance, dict) or not self._provenance_satisfied(provenance):
                 assessment["identity_match"] = "UNVERIFIED"
                 assessment["identity_finding"] = "Canonical repository commit and tag could not be verified."
             assessment["provenance_checks"] = provenance

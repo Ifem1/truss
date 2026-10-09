@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const executable = process.platform === "win32" ? "genvm-lint.exe" : "genvm-lint";
-for (const source of ["contracts/truss_registry.py", "contracts/release_activation_gate.py"]) {
+for (const source of ["contracts/truss_registry.py", "contracts/release_activation_gate.py", "contracts/web_access_probe.py"]) {
   const result = spawnSync(executable, ["check", source], {
     cwd: process.cwd(), stdio: "inherit", shell: process.platform === "win32",
     env: { ...process.env, PYTHONIOENCODING: "utf-8", GENVM_VERSION: "v0.3.0-rc7" },

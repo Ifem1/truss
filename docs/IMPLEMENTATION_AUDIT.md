@@ -17,9 +17,9 @@ Baseline: `045b7460b8e2b7ac224187b51959263bd64e511d`.
 ## Unresolved security findings
 
 1. **Issuer independence:** The adopter still chooses the publisher and issuer wallets and can choose colluding addresses. The signed transactions authenticate wallet control, not organizational identity or independence. Legacy policies still permit self-declared evidence. This remains a critical gap for policies requiring externally verified third-party evidence.
-2. **CI and attestation provenance:** Issuer-bound mode now checks GitHub commit and tag resolution, but it does not deterministically bind a GitHub Actions run, artifact or external signed attestation subject to that commit. Semantic model classifications can still accept misleading claims about tests or security. The GitHub API transport also cannot expose invisible redirects.
+2. **CI and attestation provenance:** The corrected registry sends explicit GitHub headers and, when a `TEST_STATUS` source is a GitHub Actions run endpoint, deterministically checks the run ID, repository, exact candidate commit, completed/success state, configured workflow path and push event. This proves GitHub reports a successful hosted run for that commit. Repository maintainers control workflow content, so this does not establish the quality or independence of the checks; semantic classifications can still overstate what a successful run proves. Invisible redirects remain unobservable.
 3. **Redirect origin:** The pinned `gl.nondet.web.get` API does not expose the final origin or a redirect-disable control. Issuer-bound content with substituted bytes fails the signed digest check, but the runtime still cannot prove the final host. Legacy policy redirects remain unsafe for source-origin claims.
-4. **Live consumer proof:** Both contracts are deployed and byte-matched on Studionet, but the live candidate was not admitted. The issuer-bound assessment finalized `MAJORITY_DISAGREE` after GenVM received HTTP 403 from the GitHub API. The gate therefore has no active candidate, and no successful live activation has been shown. Direct Mode consumer tests use a simulated cross-contract read response.
+4. **Live consumer proof:** The first registry revision failed closed because GitHub returned HTTP 403 without request headers. A diagnostic contract then finalized a host probe showing HTTP 200 from GitHub REST, raw GitHub, jsDelivr, and the Actions API with explicit headers. The corrected registry is deployed and byte-matched. A new tagged CI run and issuer-bound assessment are still required to prove admission, followed by a live gate activation. Direct Mode consumer tests use a simulated cross-contract read response.
 5. **Production cutover:** The public Vercel frontend and historical registry address still refer to the baseline system. The current source intentionally has no default contract address; production configuration must be updated after a usable live lifecycle is demonstrated.
 
 These findings prevent claiming independent release provenance, a trusted final activation lifecycle or complete production deployment. The live assessment demonstrated fail-closed behavior under inaccessible evidence, not release admission.
@@ -30,7 +30,7 @@ These findings prevent claiming independent release provenance, a trusted final 
 - Studionet RPC `eth_chainId`: `0xf22f` (61999).
 - Deployment signer: `truss-deployer`, address `0x39680bd423437c0eaa18493629652821ec672c61`, unlocked with positive balance at signing.
 - Contract lint and semantic validation: both contracts passed.
-- Direct Mode: 39 passed.
+- Direct Mode: 40 passed.
 - Unit tests: 2 passed.
 - TypeScript typecheck and production build: passed.
 - Browser tests: 16 passed using controlled RPC and injected-wallet fixtures, including nonowner assessment and activation finality/state reread.

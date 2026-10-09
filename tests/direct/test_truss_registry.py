@@ -194,6 +194,37 @@ def test_issuer_digest_mismatch_cannot_support_admission(direct_vm, direct_deplo
     assert c.get_admitted_head(c._test_lineage_key) == ""
 
 
+def test_github_requests_use_supported_headers_and_actions_run_is_commit_bound(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    api_url = "https://api.github.com/repos/Ifem1/truss/actions/runs/12345"
+    assert c._web_headers(api_url) == {
+        "User-Agent": "TRUSS/1.0", "Accept": "application/vnd.github+json",
+    }
+    assert c._web_headers("https://raw.githubusercontent.com/Ifem1/truss/main/README.md") == {
+        "User-Agent": "TRUSS/1.0", "Accept": "*/*",
+    }
+    direct_vm.clear_mocks()
+    direct_vm.mock_web(r".*/repos/Ifem1/truss/commits/" + "a"*40, {"status": 200, "body": json.dumps({"sha":"a"*40})})
+    direct_vm.mock_web(r".*/repos/Ifem1/truss/git/ref/tags/v1.0.0", {"status": 200, "body": json.dumps({"ref":"refs/tags/v1.0.0","object":{"type":"commit","sha":"a"*40}})})
+    direct_vm.mock_web(r".*/repos/Ifem1/truss/actions/runs/12345", {"status": 200, "body": json.dumps({
+        "id": 12345, "status": "completed", "conclusion": "success", "head_sha": "a"*40,
+        "repository": {"full_name": "Ifem1/truss"}, "path": ".github/workflows/ci.yml", "event": "push",
+    })})
+    policy = {"repository_owner": "Ifem1", "repository_name": "truss"}
+    candidate = {"commit_sha": "a"*40, "release_label": "v1.0.0"}
+    evidence = [{"role":"TEST_STATUS", "url":api_url}]
+    provenance = c._github_provenance(policy, candidate, evidence)
+    assert c._provenance_satisfied(provenance)
+    direct_vm.clear_mocks()
+    direct_vm.mock_web(r".*/repos/Ifem1/truss/commits/" + "a"*40, {"status": 200, "body": json.dumps({"sha":"a"*40})})
+    direct_vm.mock_web(r".*/repos/Ifem1/truss/git/ref/tags/v1.0.0", {"status": 200, "body": json.dumps({"ref":"refs/tags/v1.0.0","object":{"type":"commit","sha":"a"*40}})})
+    direct_vm.mock_web(r".*/repos/Ifem1/truss/actions/runs/12345", {"status": 200, "body": json.dumps({
+        "id": 12345, "status": "completed", "conclusion": "success", "head_sha": "b"*40,
+        "repository": {"full_name": "Ifem1/truss"}, "path": ".github/workflows/ci.yml", "event": "push",
+    })})
+    assert not c._provenance_satisfied(c._github_provenance(policy, candidate, evidence))
+
+
 def test_malformed_policy_criteria_and_evidence_scopes_rejected(direct_vm, direct_deploy):
     c = setup(direct_vm, direct_deploy)
     base = ["policy-bad", "lineage-bad", "Software", "org", "repo", "x"*30, "y"*100]

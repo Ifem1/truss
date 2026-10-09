@@ -2,11 +2,11 @@
 
 ## Current Studionet contracts and live status
 
-The current registry is `0x059800DBA210d684098A2061a276f69E8499fBBd` and the release activation gate is `0x8A118772b11605F70d4dB60A774D89c0830d6274`. Both deployment receipts are `FINALIZED` with `MAJORITY_AGREE`, and `gen_getContractCode` returned exact byte matches for the repository source. The gate is frozen to the `genlayerjs-v118-lineage-20261009` policy digest `40cea9497126360fffa1a785e71b6f698bb403cf331b7d13c352b0ae672a5501`. See [the current manifest](../deployment-manifest.current.json) for addresses, transaction hashes and source hashes.
+The corrected registry is `0x0D27Fce351B34084003b10f3C3Dcc6BC0a1C51d3` and a temporary host diagnostic is `0xf2E9bD4D3368a718281E6D61A08B04B8F1546620`. Both receipts are `FINALIZED` with `MAJORITY_AGREE`, and the deployed registry bytes match the repository source. The earlier registry `0x059800DBA210d684098A2061a276f69E8499fBBd` did not send GitHub request headers and is superseded. A current activation gate and policy for the tagged TRUSS Actions run are being prepared against the corrected registry.
 
-An issuer-bound policy and candidate for the public `genlayerlabs/genlayer-js` v1.1.8 tag were created. The evidence issuer attested a SHA-256 digest and the round was sealed. The live assessment transaction finalized with `MAJORITY_DISAGREE`: GenVM validators received HTTP 403 from the GitHub API, so the fetched bytes did not match the issuer commitment and the canonical commit/tag checks failed. The candidate remains open without an admitted assessment; the gate has no active candidate. This is a fail-closed result, not a successful release lifecycle. The wallet addresses in this demonstration are all locally controlled.
+An earlier issuer-bound `genlayerlabs/genlayer-js` v1.1.8 candidate remains open on the superseded registry; its assessment finalized `MAJORITY_DISAGREE` after requests without GitHub headers received HTTP 403. The finalized probe contract returned HTTP 200 for the GitHub API, raw GitHub, jsDelivr and the Actions API when explicit headers were sent. A replacement policy uses the GitHub Actions run API and validates the run fields deterministically. This replacement lifecycle must still finalize admission and activation before it is counted as successful. Demonstration publisher and issuer wallets are locally controlled.
 
-The frontend at the production alias has not been switched to these addresses. Do not configure a release consumer to activate from this policy until the GitHub API access issue is resolved and a successful finalized live assessment and gate activation are verified.
+The frontend at the production alias still uses the historical system. Production cutover remains after successful finalized admission and activation on the corrected contracts.
 
 ## Historical Studionet 61999 contract
 
