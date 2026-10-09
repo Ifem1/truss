@@ -35,6 +35,9 @@
     "deploymentTransaction": "0xc7a7a79da6818459709dfa6b450bd5adecd91a5c98263a272b5ef6a3bb16bf6d",
     "status": "FINALIZED",
     "result": "MAJORITY_AGREE",
+    "sourceSha256": "c14b7fe47ae60e1bb4ca03e8e4db97c34da447d65f3b96ed58c2681dbd7893ec",
+    "deployedSourceSha256": "c14b7fe47ae60e1bb4ca03e8e4db97c34da447d65f3b96ed58c2681dbd7893ec",
+    "sourceByteMatch": true,
     "registryAddress": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
     "policyKey": "truss-actions-v012-policy",
     "policyDigest": "48b758ee118cd93cbbc7d4cdeac05f62ceb7e62eadaf2657bc0d25f2234d44f4"
