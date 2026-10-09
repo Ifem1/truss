@@ -215,6 +215,9 @@ def test_github_requests_use_supported_headers_and_actions_run_is_commit_bound(d
     evidence = [{"role":"TEST_STATUS", "url":api_url}]
     provenance = c._github_provenance(policy, candidate, evidence)
     assert c._provenance_satisfied(provenance)
+    assessment = c._apply_provenance_result({"identity_match":"MATCH", "identity_finding":"stale model text"}, provenance)
+    assert assessment["identity_match"] == "MATCH"
+    assert assessment["identity_finding"] == "Canonical repository tag and commit match the candidate."
     direct_vm.clear_mocks()
     direct_vm.mock_web(r".*/repos/Ifem1/truss/commits/" + "a"*40, {"status": 200, "body": json.dumps({"sha":"a"*40})})
     direct_vm.mock_web(r".*/repos/Ifem1/truss/git/ref/tags/v1.0.0", {"status": 200, "body": json.dumps({"ref":"refs/tags/v1.0.0","object":{"type":"commit","sha":"a"*40}})})
@@ -222,7 +225,11 @@ def test_github_requests_use_supported_headers_and_actions_run_is_commit_bound(d
         "id": 12345, "status": "completed", "conclusion": "success", "head_sha": "b"*40,
         "repository": {"full_name": "Ifem1/truss"}, "path": ".github/workflows/ci.yml", "event": "push",
     })})
-    assert not c._provenance_satisfied(c._github_provenance(policy, candidate, evidence))
+    failed = c._github_provenance(policy, candidate, evidence)
+    assert not c._provenance_satisfied(failed)
+    assessment = c._apply_provenance_result({"identity_match":"MATCH", "identity_finding":"model text"}, failed)
+    assert assessment["identity_match"] == "UNVERIFIED"
+    assert "could not be verified" in assessment["identity_finding"]
 
 
 def test_malformed_policy_criteria_and_evidence_scopes_rejected(direct_vm, direct_deploy):

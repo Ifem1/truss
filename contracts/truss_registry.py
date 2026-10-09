@@ -567,6 +567,14 @@ class TrussRegistry(gl.Contract):
                              "actions_workflow_path_matches", "actions_event_is_push"])
         return all(provenance.get(field) is True for field in required)
 
+    def _apply_provenance_result(self, assessment: dict, provenance: dict) -> dict:
+        if not self._provenance_satisfied(provenance):
+            assessment["identity_match"] = "UNVERIFIED"
+            assessment["identity_finding"] = "Canonical repository tag and commit could not be verified."
+        elif assessment.get("identity_match") == "MATCH":
+            assessment["identity_finding"] = "Canonical repository tag and commit match the candidate."
+        return assessment
+
     def _normalise(self, raw, policy: dict, evidence: list, fetched: list | None = None) -> dict:
         if not isinstance(raw, dict):
             raw = {}
@@ -689,9 +697,7 @@ Every frozen criterion id and every frozen evidence URL must appear exactly once
         assessment = self._normalise(raw, policy, evidence, fetched)
         if policy.get("evidence_issuers"):
             assessment["provenance_checks"] = provenance
-            if not self._provenance_satisfied(provenance):
-                assessment["identity_match"] = "UNVERIFIED"
-            assessment["identity_finding"] = "Canonical repository tag and commit could not be verified."
+            assessment = self._apply_provenance_result(assessment, provenance)
         for item in assessment["evidence_states"]:
             source = next((x for x in fetched if x.get("url") == item.get("url")), {})
             if item.get("state") == "SUPPORTS" and not (200 <= int(source.get("http_status", 0)) < 300 and str(source.get("content", "")).strip()):
@@ -778,10 +784,10 @@ Every frozen criterion id and every frozen evidence URL must appear exactly once
         assessment = self._normalise(assessment, policy, evidence, fetched_commitments)
         if policy.get("evidence_issuers"):
             provenance = raw_provenance
-            if not isinstance(provenance, dict) or not self._provenance_satisfied(provenance):
-                assessment["identity_match"] = "UNVERIFIED"
-                assessment["identity_finding"] = "Canonical repository tag and commit could not be verified."
+            if not isinstance(provenance, dict):
+                provenance = {}
             assessment["provenance_checks"] = provenance
+            assessment = self._apply_provenance_result(assessment, provenance)
         for item in assessment["evidence_states"]:
             source = next((x for x in fetched_commitments if x.get("url") == item.get("url")), {})
             if item.get("state") == "SUPPORTS" and not (200 <= int(source.get("http_status", 0)) < 300 and source.get("usable_content")):
