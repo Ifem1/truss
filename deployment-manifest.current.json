@@ -1,0 +1,38 @@
+{
+  "project": "TRUSS",
+  "network": "studionet",
+  "chainId": 61999,
+  "rpc": "https://studio.genlayer.com/api",
+  "registry": {
+    "address": "0x059800DBA210d684098A2061a276f69E8499fBBd",
+    "deploymentTransaction": "0xe2ceff7e3f540627b46fc2909782e15c2a7fa37e96d82e0ba5e254748e390d91",
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "sourceSha256": "e9069549124d1727953e4d67e8a2f20748c4de4b6659d4ae3746248fe92d3fca",
+    "sourceByteMatch": true
+  },
+  "activationGate": {
+    "address": "0x8A118772b11605F70d4dB60A774D89c0830d6274",
+    "deploymentTransaction": "0x2a485af08b9e1625ad9567ffed79d23003d550c912e344c2d9fb5031e27a9ee7",
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "sourceSha256": "c14b7fe47ae60e1bb4ca03e8e4db97c34da447d65f3b96ed58c2681dbd7893ec",
+    "sourceByteMatch": true,
+    "lineageKey": "genlayerjs-v118-lineage-20261009",
+    "policyDigest": "40cea9497126360fffa1a785e71b6f698bb403cf331b7d13c352b0ae672a5501"
+  },
+  "liveCycle": {
+    "policyKey": "genlayerjs-v118-policy-20261009",
+    "policyTransaction": "0xbb701aa70df74ef999504f6fe7b4bcd1601d80a9fb5eb2d96876d78763a7b2e7",
+    "candidateKey": "genlayerjs-v118-candidate-20261009",
+    "evidenceSealTransaction": "0x9a79ca72bc74c4c3efbc8d22d1adf9ce7ee208205487b6dd8a4d2059314963f8",
+    "assessmentTransaction": "0xbea5fc6b76609a0759cc44c97f2b46d010c5f961e1b16c604dd0c051272a5cf6",
+    "assessmentStatus": "FINALIZED",
+    "assessmentResult": "MAJORITY_DISAGREE",
+    "admitted": false,
+    "activeCandidate": "",
+    "finding": "GenVM validators received HTTP 403 from the GitHub API; the issuer digest did not match the response and consensus did not admit the release.",
+    "walletIndependence": "The owner, publisher and issuer addresses used in this demonstration are locally controlled; distinct addresses do not establish organizational independence."
+  },
+  "productionFrontendUpdated": false
+}

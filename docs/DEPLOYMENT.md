@@ -1,8 +1,16 @@
 # Deployment
 
+## Current Studionet contracts and live status
+
+The current registry is `0x059800DBA210d684098A2061a276f69E8499fBBd` and the release activation gate is `0x8A118772b11605F70d4dB60A774D89c0830d6274`. Both deployment receipts are `FINALIZED` with `MAJORITY_AGREE`, and `gen_getContractCode` returned exact byte matches for the repository source. The gate is frozen to the `genlayerjs-v118-lineage-20261009` policy digest `40cea9497126360fffa1a785e71b6f698bb403cf331b7d13c352b0ae672a5501`. See [the current manifest](../deployment-manifest.current.json) for addresses, transaction hashes and source hashes.
+
+An issuer-bound policy and candidate for the public `genlayerlabs/genlayer-js` v1.1.8 tag were created. The evidence issuer attested a SHA-256 digest and the round was sealed. The live assessment transaction finalized with `MAJORITY_DISAGREE`: GenVM validators received HTTP 403 from the GitHub API, so the fetched bytes did not match the issuer commitment and the canonical commit/tag checks failed. The candidate remains open without an admitted assessment; the gate has no active candidate. This is a fail-closed result, not a successful release lifecycle. The wallet addresses in this demonstration are all locally controlled.
+
+The frontend at the production alias has not been switched to these addresses. Do not configure a release consumer to activate from this policy until the GitHub API access issue is resolved and a successful finalized live assessment and gate activation are verified.
+
 ## Historical Studionet 61999 contract
 
-The baseline contract was deployed to Studionet chain `61999`, RPC `https://studio.genlayer.com/api`, explorer `https://explorer-studio.genlayer.com`, using repository-local GenLayer CLI `0.39.1`. The current source includes new registry methods and a separate release activation gate; neither has a verified current deployment yet.
+The baseline contract was deployed to Studionet chain `61999`, RPC `https://studio.genlayer.com/api`, explorer `https://explorer-studio.genlayer.com`, using repository-local GenLayer CLI `0.39.1`. This historical contract is distinct from the current registry and activation gate above.
 
 - Contract: `0xEf2aF888D4e764678d97a1EC38e7519047440fFb`
 - Deployment transaction: [0x5609cb13936ae6d497b3278b6aeab6afc523c425073f140c672b9e48843ba83d](https://explorer-studio.genlayer.com/tx/0x5609cb13936ae6d497b3278b6aeab6afc523c425073f140c672b9e48843ba83d)

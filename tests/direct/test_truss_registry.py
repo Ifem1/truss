@@ -1,5 +1,6 @@
 """Adversarial contract execution on the pinned genlayer-test Direct Mode VM."""
 import json
+import hashlib
 import re
 import pytest
 
@@ -86,6 +87,111 @@ def test_unauthorized_successor_and_policy_lineage_race_rejected(direct_vm, dire
     direct_vm.sender = bytes.fromhex("22" * 20)
     with direct_vm.expect_revert("only lineage owner"):
         c.create_policy("policy-v2", c._test_lineage_key, "TRUSS fixture", "Ifem1", "fixture", "x"*30, "y"*100, json.dumps([{"id":"CHECKS_PASS","title":"Checks pass","rule":"A sufficiently long rule for test purposes only."}]), json.dumps(["RELEASE_IDENTITY"]), json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/"]}), c._test_policy_key)
+
+
+def test_policy_owner_can_designate_a_distinct_publisher_without_impersonation(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    owner = bytes.fromhex("11" * 20)
+    publisher = bytes.fromhex("22" * 20)
+    stranger = bytes.fromhex("33" * 20)
+    args = ["policy-publisher", "lineage-publisher", "TRUSS fixture", "Ifem1", "fixture",
+            "A bounded public fixture for publisher authorization testing.",
+            "Admission requires the exact release identity and a successful synthetic test fixture for the committed candidate coordinates.",
+            json.dumps([{"id":"CHECKS_PASS","title":"Checks pass","rule":"The exact committed release fixture reports required checks passed."}]),
+            json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
+            json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/identity"],"TEST_STATUS":["evidence.example.org|/release/tests"]}), ""]
+    with direct_vm.expect_revert("separate nonzero"):
+        c.create_policy_with_publisher(*args, "0x" + "11" * 20)
+    assert c.create_policy_with_publisher(*args, "0x" + "22" * 20) == "policy-publisher"
+    policy = json.loads(c.get_policy_json("policy-publisher"))
+    assert policy["owner"] == "0x" + "11" * 20 and policy["publisher"] == "0x" + "22" * 20
+    evidence = json.dumps([{"role":"RELEASE_IDENTITY","url":IDENTITY},{"role":"TEST_STATUS","url":TESTS}])
+    with direct_vm.expect_revert("designated publisher"):
+        c.open_candidate("publisher-candidate", "policy-publisher", "v1", "a"*40, "", evidence)
+    direct_vm.sender = stranger
+    with direct_vm.expect_revert("designated publisher"):
+        c.open_candidate("publisher-candidate", "policy-publisher", "v1", "a"*40, "", evidence)
+    direct_vm.sender = publisher
+    assert c.open_candidate("publisher-candidate", "policy-publisher", "v1", "a"*40, "", evidence) == "publisher-candidate"
+    candidate = json.loads(c.get_candidate_json("publisher-candidate"))
+    assert candidate["owner"] == "0x" + "22" * 20
+    direct_vm.sender = owner
+    with direct_vm.expect_revert("only candidate owner"):
+        c.append_evidence_round("publisher-candidate", evidence)
+
+
+def test_designated_issuer_commitments_bind_the_sealed_round(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    policy_key = "policy-with-issuers"
+    c.create_policy_with_issuers(
+        policy_key, c._test_lineage_key, "TRUSS fixture", "Ifem1", "fixture",
+        "This public fixture exercises designated wallet evidence attestations.",
+        "Admission requires exact candidate coordinates and authenticated content commitments from the policy-designated evidence issuer.",
+        json.dumps([{"id":"CHECKS_PASS","title":"Checks pass","rule":"The exact committed release fixture reports required checks passed."}]),
+        json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
+        json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/identity"],"TEST_STATUS":["evidence.example.org|/release/tests"]}),
+        c._test_policy_key, "0x" + "22" * 20,
+        json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
+    )
+    evidence = json.dumps([{"role":"RELEASE_IDENTITY","url":IDENTITY},{"role":"TEST_STATUS","url":TESTS}])
+    direct_vm.sender = bytes.fromhex("22" * 20)
+    c.open_candidate("issuer-candidate", policy_key, "v1", "a" * 40, "", evidence)
+    frozen = json.loads(c.get_candidate_json("issuer-candidate"))["evidence_rounds"][0]
+    with direct_vm.expect_revert("not sealed"):
+        c.assess_candidate("issuer-candidate")
+    with direct_vm.expect_revert("required issuer attestation"):
+        c.seal_candidate("issuer-candidate")
+    body = "Public synthetic release record and test result."
+    digest = hashlib.sha256(body.encode()).hexdigest()
+    with direct_vm.expect_revert("designated role issuer"):
+        c.attest_evidence("issuer-candidate", "RELEASE_IDENTITY", IDENTITY, digest)
+    direct_vm.sender = bytes.fromhex("33" * 20)
+    c.attest_evidence("issuer-candidate", "RELEASE_IDENTITY", IDENTITY, digest)
+    c.attest_evidence("issuer-candidate", "TEST_STATUS", TESTS, digest)
+    with direct_vm.expect_revert("evidence already attested"):
+        c.attest_evidence("issuer-candidate", "TEST_STATUS", TESTS, digest)
+    direct_vm.sender = bytes.fromhex("44" * 20)
+    assert c.seal_candidate("issuer-candidate") == "SEALED"
+    state = json.loads(c.get_candidate_json("issuer-candidate"))
+    assert state["evidence_rounds"][0] == frozen
+    assert state["sealed_evidence_rounds"] == [1]
+    assert len(state["evidence_attestations"]) == 2
+    mock_assessment(direct_vm, body=body)
+    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/commits/.*", {"status": 200, "body": json.dumps({"sha":"a"*40})})
+    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/ref/tags/v1", {"status": 200, "body": json.dumps({"ref":"refs/tags/v1","object":{"type":"tag","sha":"b"*40}})})
+    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/tags/.*", {"status": 200, "body": json.dumps({"sha":"b"*40,"object":{"type":"commit","sha":"a"*40}})})
+    assert c.assess_candidate("issuer-candidate")["verdict"] == "ADMITTED"
+    assert direct_vm.run_validator() is True
+    mock_assessment(direct_vm, body=body)
+    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/commits/.*", {"status": 200, "body": json.dumps({"sha":"a"*40})})
+    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/ref/tags/v1", {"status": 200, "body": json.dumps({"ref":"refs/tags/v1","object":{"type":"commit","sha":"b"*40}})})
+    assert direct_vm.run_validator() is False
+
+
+def test_issuer_digest_mismatch_cannot_support_admission(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    c.create_policy_with_issuers(
+        "policy-digest-mismatch", c._test_lineage_key, "TRUSS fixture", "Ifem1", "fixture",
+        "This public fixture exercises mismatched issuer content digests.",
+        "Admission requires exact candidate coordinates and authenticated content commitments from the policy-designated evidence issuer.",
+        json.dumps([{"id":"CHECKS_PASS","title":"Checks pass","rule":"The exact committed release fixture reports required checks passed."}]),
+        json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
+        json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/identity"],"TEST_STATUS":["evidence.example.org|/release/tests"]}),
+        c._test_policy_key, "0x" + "22" * 20,
+        json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
+    )
+    direct_vm.sender = bytes.fromhex("22" * 20)
+    c.open_candidate("wrong-digest", "policy-digest-mismatch", "v1", "a" * 40, "", json.dumps([
+        {"role":"RELEASE_IDENTITY","url":IDENTITY},{"role":"TEST_STATUS","url":TESTS}]))
+    direct_vm.sender = bytes.fromhex("33" * 20)
+    wrong = hashlib.sha256(b"different content").hexdigest()
+    c.attest_evidence("wrong-digest", "RELEASE_IDENTITY", IDENTITY, wrong)
+    c.attest_evidence("wrong-digest", "TEST_STATUS", TESTS, wrong)
+    c.seal_candidate("wrong-digest")
+    mock_assessment(direct_vm)
+    result = c.assess_candidate("wrong-digest")
+    assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
+    assert c.get_admitted_head(c._test_lineage_key) == ""
 
 
 def test_malformed_policy_criteria_and_evidence_scopes_rejected(direct_vm, direct_deploy):

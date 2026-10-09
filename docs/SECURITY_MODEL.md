@@ -27,6 +27,12 @@ Sources are fetched again by each validator. Every validator must agree on each 
 
 The Direct Mode suite now runs against the installed `genlayer-test` harness with no skipped cases. Its local fixtures are synthetic and do not establish production evidence or Studionet behavior.
 
+## Issuer-bound policies
+
+An adopter can freeze a separate publisher address and one designated issuer address per required evidence role. The publisher wallet alone opens candidates. Each issuer submits a transaction attesting the SHA-256 digest of one frozen URL's exact bytes for a particular candidate coordinate, policy digest and evidence-round digest. The bundle can be sealed by any caller only after every required role has its attestation. Assessment of an unsealed round fails. A validator fetch that differs from an issuer's committed digest is unusable for admission. Old policy creation remains available as a legacy self-declared mode and has no issuer-authentication claim.
+
+These transactions authenticate control of the designated wallet at submission time. The adopter selects the addresses, so they do not prove that distinct wallets have independent owners or that the attested content is factually true. The application displays that trust assumption. Issuer-bound policies still need external governance of issuer identities before being described as third-party verified.
+
 ## Remaining authentication boundary
 
-Policy-selected URL scopes are adopter assertions. A URL and a SHA-256 digest do not prove publisher control, signed provenance, GitHub repository membership, CI authority or true independence. The current registry does not cryptographically verify an issuer attestation. Its `ADMITTED` state must therefore be read as a decision under the adopter's self-declared evidence trust model, not independently authenticated third-party proof. The consumer enforces that registry decision but cannot increase its provenance assurance. No new registry or consumer deployment should be represented as satisfying authenticated provenance until this boundary is implemented and live-tested.
+Policy-selected URL scopes are adopter assertions. A URL and a SHA-256 digest do not prove GitHub repository membership, CI authority or true independence. Issuer-bound mode authenticates the submitting wallet through a GenLayer transaction but does not verify an external signature or organizational identity. `ADMITTED` remains a decision under the adopter's frozen trust model. The consumer enforces that registry decision but cannot increase its provenance assurance. No new registry or consumer deployment should be represented as satisfying independent third-party provenance without external issuer governance and live proof.
