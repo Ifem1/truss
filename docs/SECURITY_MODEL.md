@@ -16,6 +16,8 @@
 12. Accepted/decided transaction state is not presented as final admission.
 13. Prompt instructions contained in evidence are untrusted data.
 14. Provenance fields are derived from fetched bytes, not model claims.
+15. Assessment initiation is permissionless and cannot supply replacement policy, release coordinates or evidence.
+16. The release activation gate reads the configured registry's latest finalized state and checks exact head, lineage, repository, frozen policy digest, terminal admitted status and final admitted attempt before an operator may persist activation. It has no unconditional activation method.
 
 ## Evidence retrieval limits
 
@@ -24,3 +26,7 @@ The contract uses the pinned SDK's `gl.nondet.web.get(url)` interface. That API 
 Sources are fetched again by each validator. Every validator must agree on each source's HTTP status and full-content SHA-256 as well as on the bounded classifications. A mutable source that changes between validator fetches blocks that assessment instead of letting one validator's bytes stand for all. Once consensus succeeds, the contract carries the agreed retrieval commitments forward instead of refetching mutable URLs. The digest commits to fetched bytes but does not establish who published the source or whether its claims are true.
 
 The Direct Mode suite now runs against the installed `genlayer-test` harness with no skipped cases. Its local fixtures are synthetic and do not establish production evidence or Studionet behavior.
+
+## Remaining authentication boundary
+
+Policy-selected URL scopes are adopter assertions. A URL and a SHA-256 digest do not prove publisher control, signed provenance, GitHub repository membership, CI authority or true independence. The current registry does not cryptographically verify an issuer attestation. Its `ADMITTED` state must therefore be read as a decision under the adopter's self-declared evidence trust model, not independently authenticated third-party proof. The consumer enforces that registry decision but cannot increase its provenance assurance. No new registry or consumer deployment should be represented as satisfying authenticated provenance until this boundary is implemented and live-tested.

@@ -1,8 +1,8 @@
 # Deployment
 
-## Studionet 61999 contract
+## Historical Studionet 61999 contract
 
-The final contract is deployed to the only permitted network: Studionet chain `61999`, RPC `https://studio.genlayer.com/api`, explorer `https://explorer-studio.genlayer.com`, using repository-local GenLayer CLI `0.39.1`.
+The baseline contract was deployed to Studionet chain `61999`, RPC `https://studio.genlayer.com/api`, explorer `https://explorer-studio.genlayer.com`, using repository-local GenLayer CLI `0.39.1`. The current source includes new registry methods and a separate release activation gate; neither has a verified current deployment yet.
 
 - Contract: `0xEf2aF888D4e764678d97a1EC38e7519047440fFb`
 - Deployment transaction: [0x5609cb13936ae6d497b3278b6aeab6afc523c425073f140c672b9e48843ba83d](https://explorer-studio.genlayer.com/tx/0x5609cb13936ae6d497b3278b6aeab6afc523c425073f140c672b9e48843ba83d)
@@ -20,7 +20,7 @@ Fresh synthetic lifecycle proofs were completed on the final contract: ADMITTED/
 
 The final contract source passed repository preflight, contract compile/lint and SDK validation, Direct Mode, unit tests, TypeScript typecheck, production frontend build and browser tests before deployment. Post-deployment reruns passed: Direct Mode 31/31, unit tests 2/2, browser tests 14/14. Browser transaction-flow tests use controlled RPC fixtures and do not submit live transactions. The deployment script checks the live RPC chain ID equals `0xf22f`, verifies local CLI `0.39.1`, requires explicit account and expected address environment variables, verifies that account is active/unlocked/funded before signing, waits for `FINALIZED`, fetches deployed code and compares exact bytes.
 
-The frontend defaults to the final public contract address `0xEf2aF888D4e764678d97a1EC38e7519047440fFb`. Vercel may override it with `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS`; no production mock address or mock transaction path is included. The finalized transaction reader checks the receipt's `status_name` and the successful leader return under `consensus_data.leader_receipt`, matching the pinned SDK's observed Studionet response.
+The current frontend requires `NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS` and `NEXT_PUBLIC_ACTIVATION_GATE_ADDRESS` for the new deployment; it has no compiled-in historical address. The existing production deployment still uses the baseline address. The finalized transaction reader checks the receipt's `status_name` and the successful leader return under `consensus_data.leader_receipt`, matching the pinned SDK's observed Studionet response.
 
 Semantic contract validation uses the GenVM runner version matching the existing contract dependency header. The pinned manager artifact layout is incompatible with the legacy linter's expected archive path; the checked validation command pins the compatible runner and passed AST lint plus SDK semantics.
 

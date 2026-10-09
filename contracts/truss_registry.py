@@ -22,6 +22,7 @@ MAX_SOURCE_BYTES = 64 * 1024
 MAX_TOTAL_SOURCE_BYTES = 256 * 1024
 MAX_PROMPT_EXCERPT = 7000
 MAX_FETCH_ERROR = 300
+ABANDONMENT_DELAY_SECONDS = 30 * 24 * 60 * 60
 
 
 def _now() -> int:
@@ -288,7 +289,7 @@ class TrussRegistry(gl.Contract):
         return _digest({
             "policy_digest": policy.get("policy_digest", ""),
             "repository": f"{policy.get('repository_owner','')}/{policy.get('repository_name','')}",
-            "release_label": release_label, "commit_sha": commit_sha,
+            "commit_sha": commit_sha,
             "predecessor_candidate_key": predecessor,
         })
 
@@ -383,10 +384,26 @@ class TrussRegistry(gl.Contract):
     def _normalise(self, raw, policy: dict, evidence: list, fetched: list | None = None) -> dict:
         if not isinstance(raw, dict):
             raw = {}
+        expected_ids = [str(c.get("id", "")) for c in policy.get("criteria", [])]
+        expected_urls = [str(e.get("url", "")) for e in evidence]
+        returned_criteria = raw.get("criteria")
+        returned_evidence = raw.get("evidence_states")
+        # A duplicate or extra decision field must never be resolved by taking
+        # the first occurrence. Treat malformed classifications as unverified.
+        well_formed = (
+            isinstance(returned_criteria, list) and isinstance(returned_evidence, list)
+            and len(returned_criteria) == len(expected_ids)
+            and len(returned_evidence) == len(expected_urls)
+            and all(isinstance(x, dict) for x in returned_criteria + returned_evidence)
+            and sorted(str(x.get("id", "")).upper() for x in returned_criteria) == sorted(expected_ids)
+            and sorted(str(x.get("url", "")) for x in returned_evidence) == sorted(expected_urls)
+        )
+        if not well_formed:
+            raw = {"identity_match": "UNVERIFIED", "identity_finding": "Malformed or incomplete decision fields.",
+                   "criteria": [], "evidence_states": [], "summary": "Decision fields did not match the frozen question."}
         identity = str(raw.get("identity_match", "UNVERIFIED")).upper()
         if identity not in IDENTITY_STATES:
             identity = "UNVERIFIED"
-        expected_ids = [str(c.get("id", "")) for c in policy.get("criteria", [])]
         by_id = {}
         returned_criteria = raw.get("criteria")
         if isinstance(returned_criteria, list):
@@ -500,8 +517,8 @@ Every frozen criterion id and every frozen evidence URL must appear exactly once
     @gl.public.write
     def assess_candidate(self, candidate_key: str) -> dict:
         candidate = self._get_candidate(candidate_key)
-        if _address(gl.message.sender_address) != str(candidate.get("owner", "")):
-            raise gl.vm.UserError("only candidate owner may request assessment")
+        # Caller selects only the candidate key. Policy and evidence come from
+        # the frozen on-chain record, so assessment can be initiated by anyone.
         if str(candidate.get("status", "")) != "OPEN":
             raise gl.vm.UserError("candidate is not open for assessment")
         attempts, rounds = list(candidate.get("assessment_attempts", [])), list(candidate.get("evidence_rounds", []))
@@ -568,6 +585,9 @@ Every frozen criterion id and every frozen evidence URL must appear exactly once
         assessment["evidence_commitment_digest"] = _digest(commitments); assessment["assessed_at"] = _now()
         assessment["assessment_digest"] = _digest(assessment)
         attempts.append(assessment); candidate["assessment_attempts"] = attempts; candidate["status"] = assessment["verdict"]
+        if assessment["verdict"] in ("INSUFFICIENT_EVIDENCE", "CONFLICTING_EVIDENCE") and (
+                len(attempts) >= MAX_ASSESSMENT_ATTEMPTS or len(rounds) >= MAX_EVIDENCE_ROUNDS):
+            candidate["status"] = "EXHAUSTED"
         if assessment["verdict"] == "ADMITTED":
             if str(candidate.get("predecessor_candidate_key", "")) != self.admitted_head_by_lineage.get(lineage, ""):
                 raise gl.vm.UserError("candidate predecessor became stale")
@@ -577,6 +597,20 @@ Every frozen criterion id and every frozen evidence URL must appear exactly once
             self.admitted_history_by_lineage[lineage] = json.dumps(history, sort_keys=True)
         self.candidates[candidate_key] = json.dumps(candidate, sort_keys=True)
         return assessment
+
+    @gl.public.write
+    def abandon_candidate(self, candidate_key: str) -> str:
+        candidate = self._get_candidate(candidate_key)
+        if candidate.get("status") not in ("OPEN", "INSUFFICIENT_EVIDENCE", "CONFLICTING_EVIDENCE"):
+            raise gl.vm.UserError("candidate cannot be abandoned")
+        sender = _address(gl.message.sender_address)
+        if sender != candidate.get("owner") and _now() < int(candidate.get("opened_at", 0)) + ABANDONMENT_DELAY_SECONDS:
+            raise gl.vm.UserError("only candidate owner may abandon before the public recovery delay")
+        candidate["status"] = "ABANDONED"
+        candidate["abandoned_at"] = _now()
+        candidate["abandoned_by"] = sender
+        self.candidates[candidate_key] = json.dumps(candidate, sort_keys=True)
+        return "ABANDONED"
 
     @gl.public.view
     def get_policy_json(self, policy_key: str) -> str:

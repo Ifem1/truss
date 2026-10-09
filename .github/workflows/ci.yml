@@ -20,4 +20,7 @@ jobs:
       - run: npm run test:direct
       - run: npm run typecheck
       - run: npm run build
+        env:
+          NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS: "0x1111111111111111111111111111111111111111"
+          NEXT_PUBLIC_ACTIVATION_GATE_ADDRESS: "0x3333333333333333333333333333333333333333"
       - run: npm run test:e2e

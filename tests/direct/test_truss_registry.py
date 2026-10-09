@@ -138,6 +138,11 @@ def test_candidate_binds_commit_policy_digest_coordinate_and_rejects_replay(dire
     assert record["commit_sha"] == "a"*40 and record["predecessor_candidate_key"] == ""
     with direct_vm.expect_revert("release coordinate already exists"):
         open_candidate(c, "candidate-002")
+    with direct_vm.expect_revert("release coordinate already exists"):
+        c.open_candidate("candidate-alias", c._test_policy_key, "v1.0.0-alias", "a"*40, "", json.dumps([
+            {"role": "RELEASE_IDENTITY", "url": IDENTITY},
+            {"role": "TEST_STATUS", "url": TESTS},
+        ]))
     with direct_vm.expect_revert("exact 40-hex"):
         open_candidate(c, "candidate-bad", commit="not-a-commit")
 
@@ -182,6 +187,63 @@ def test_retry_appends_new_round_and_preserves_each_attempt(direct_vm, direct_de
     assert c.get_admitted_head(c._test_lineage_key) == ""
     with direct_vm.expect_revert("candidate is not open for assessment"):
         c.assess_candidate("candidate-001")
+
+
+def test_unrelated_wallet_can_assess_only_the_frozen_bundle(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    open_candidate(c)
+    before = json.loads(c.get_candidate_json("candidate-001"))
+    direct_vm.sender = bytes.fromhex("22" * 20)
+    mock_assessment(direct_vm)
+    result = c.assess_candidate("candidate-001")
+    after = json.loads(c.get_candidate_json("candidate-001"))
+    assert result["verdict"] == "ADMITTED"
+    assert after["owner"] == before["owner"]
+    assert after["policy_digest"] == before["policy_digest"]
+    assert after["evidence_rounds"] == before["evidence_rounds"]
+    assert after["commit_sha"] == before["commit_sha"]
+    assert direct_vm.run_validator() is True
+
+
+def test_abandonment_authorization_delay_and_terminal_state(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    open_candidate(c)
+    direct_vm.sender = bytes.fromhex("22" * 20)
+    with direct_vm.expect_revert("only candidate owner"):
+        c.abandon_candidate("candidate-001")
+    direct_vm.warp("2026-11-04T09:59:59+00:00")
+    with direct_vm.expect_revert("only candidate owner"):
+        c.abandon_candidate("candidate-001")
+    direct_vm.warp("2026-11-04T10:00:00+00:00")
+    # The candidate was opened on October 5; the public delay has passed.
+    assert c.abandon_candidate("candidate-001") == "ABANDONED"
+    state = json.loads(c.get_candidate_json("candidate-001"))
+    assert state["status"] == "ABANDONED" and state["assessment_attempts"] == []
+    with direct_vm.expect_revert("candidate cannot be abandoned"):
+        c.abandon_candidate("candidate-001")
+    with direct_vm.expect_revert("candidate is not open"):
+        c.assess_candidate("candidate-001")
+
+
+def test_retry_exhaustion_is_terminal_and_preserves_history(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    open_candidate(c)
+    for round_number in range(1, 4):
+        mock_assessment(direct_vm, response(test_role="NEUTRAL"))
+        assert c.assess_candidate("candidate-001")["verdict"] == "INSUFFICIENT_EVIDENCE"
+        if round_number < 3:
+            c.append_evidence_round("candidate-001", json.dumps([
+                {"role": "RELEASE_IDENTITY", "url": IDENTITY},
+                {"role": "TEST_STATUS", "url": TESTS},
+            ]))
+    state = json.loads(c.get_candidate_json("candidate-001"))
+    assert state["status"] == "EXHAUSTED"
+    assert len(state["evidence_rounds"]) == len(state["assessment_attempts"]) == 3
+    assert all(attempt["verdict"] == "INSUFFICIENT_EVIDENCE" for attempt in state["assessment_attempts"])
+    with direct_vm.expect_revert("candidate is not open"):
+        c.assess_candidate("candidate-001")
+    with direct_vm.expect_revert("new evidence is allowed only"):
+        c.append_evidence_round("candidate-001", "[]")
 
 
 def test_successful_nonempty_fetch_cannot_be_classified_unavailable(direct_vm, direct_deploy):
@@ -241,6 +303,18 @@ def test_incomplete_or_duplicate_model_classifications_fail_closed(direct_vm, di
     malformed["evidence_states"] = [{"url":IDENTITY,"state":"SUPPORTS"}]
     result = assess(direct_vm, c, malformed)
     assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
+
+
+def test_duplicate_or_extra_decision_fields_cannot_keep_favorable_first_values(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    open_candidate(c)
+    malformed = response()
+    malformed["criteria"].append({"id": "CHECKS_PASS", "state": "VIOLATED"})
+    malformed["evidence_states"].append({"url": TESTS, "state": "CONTRADICTS"})
+    result = assess(direct_vm, c, malformed)
+    assert result["identity_match"] == "UNVERIFIED"
+    assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
+    assert c.get_admitted_head(c._test_lineage_key) == ""
 
 
 def test_validator_rejects_decision_field_disagreement(direct_vm, direct_deploy):
