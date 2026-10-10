@@ -29,7 +29,7 @@ The contract deliberately does **not** claim that an admitted release is univers
 
 ## Contract
 
-V1 is intentionally one Intelligent Contract:
+The registry is one Intelligent Contract:
 
 `contracts/truss_registry.py`
 
@@ -40,6 +40,8 @@ It owns:
 - append-only evidence rounds;
 - append-only assessment attempts;
 - admitted release lineage.
+
+`contracts/release_activation_gate.py` is a separate consumer with its own protected activation state. It reads the configured registry's finalized admitted head and frozen policy before accepting an operator's activation transaction. It does not own admission decisions.
 
 The owner cannot directly mark a candidate admitted.
 
@@ -93,8 +95,10 @@ See `TRUSS_CODEX_MASTER_HANDOFF.txt` before modifying anything.
 
 ## Current implementation status
 
-**Current status:** the final contract is deployed and finalized on Studionet 61999 at `0xEf2aF888D4e764678d97a1EC38e7519047440fFb`. Its complete deployed source byte-matches repository source SHA-256 `eff129604484b9d449660e265a435e4a1677a1c6548908cf7eee04068a0be5d3`. Synthetic live lifecycle proofs against that deployment cover admitted-head advancement, rejection without head movement, retry with an appended evidence round and preserved assessments, duplicate/replay, invalid scope, unauthorized policy mutation, and stale-predecessor protection. Those fixtures are not real-world release or security evidence.
+**Deployment status:** the baseline registry was deployed and finalized on Studionet 61999 at `0xEf2aF888D4e764678d97a1EC38e7519047440fFb`; its historical source SHA-256 was `eff129604484b9d449660e265a435e4a1677a1c6548908cf7eee04068a0be5d3`. This address does not contain the current registry changes. Synthetic live lifecycle proofs against that historical deployment cover admitted-head advancement, rejection without head movement, retry with an appended evidence round and preserved assessments, duplicate/replay, invalid scope, unauthorized policy mutation, and stale-predecessor protection. Those fixtures are not real-world release or security evidence.
 
-The production frontend is live at [truss-gray.vercel.app](https://truss-gray.vercel.app), and its Vercel project, deployment ID, GitHub source commit, production configuration, and route smoke checks are recorded in the [deployment manifest](deployment-manifest.public.json) and [review evidence](docs/REVIEW_EVIDENCE.md). The deployed frontend reads the final Studionet contract. Local verification includes 31 Direct Mode tests, 2 unit tests, preflight, contract validation, TypeScript typecheck, production build, and 14 browser tests; the browser suite also passed against production. Browser transaction-flow tests use controlled RPC fixtures; they do not execute the historical live lifecycle proofs. See [deployment status](docs/DEPLOYMENT.md).
+The final registry `0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f` and activation gate `0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6` are finalized on Studionet. Registry source is byte-matched. The v0.1.2 tag-triggered GitHub Actions run passed for commit `52aca980fe74147efee7b79c3e19652dc2d3bfa7`; the final candidate is admitted with deterministic tag, repository, commit, workflow and run checks all true. Gate activation is pending Studionet consensus after a leader timeout on the first attempt. See the [current deployment manifest](deployment-manifest.current.json). The demonstration wallets are locally controlled and do not establish organizational independence.
+
+The existing production frontend at [truss-gray.vercel.app](https://truss-gray.vercel.app) is a historical deployment and does not include the current registry, recovery or activation-gate changes. Its earlier Vercel project, deployment ID, source commit, configuration and route smoke checks are recorded in the [deployment manifest](deployment-manifest.public.json) and [review evidence](docs/REVIEW_EVIDENCE.md). Browser transaction-flow tests use controlled RPC fixtures; they do not execute live lifecycle proofs. See [deployment status](docs/DEPLOYMENT.md).
 
 The pinned SDK's web fetch API does not expose redirect controls. An observed 3xx is rejected, but automatic redirect-following cannot be ruled out. This is an unresolved evidence-scope limitation.

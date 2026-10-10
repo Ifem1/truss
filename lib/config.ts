@@ -6,4 +6,5 @@ export const NETWORK = {
   explorer: process.env.NEXT_PUBLIC_GENLAYER_EXPLORER ?? "https://explorer-studio.genlayer.com",
   token: { name: "GEN", symbol: "GEN", decimals: 18 }
 } as const;
-export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS ?? "0xEf2aF888D4e764678d97a1EC38e7519047440fFb";
+export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS ?? "";
+export const ACTIVATION_GATE_ADDRESS = process.env.NEXT_PUBLIC_ACTIVATION_GATE_ADDRESS ?? "";

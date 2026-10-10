@@ -13,6 +13,12 @@ TRUSS uses role-bound evidence.
 
 A policy selects mandatory roles and accepted host/path scopes per role.
 
+An issuer-bound policy additionally fixes one issuer wallet per required role. Each issuer signs a content-digest commitment in a separate on-chain transaction. The commitment is bound to the exact candidate, policy, coordinate, URL and evidence round. The round must be sealed before assessment. All roles use the same envelope; the role-specific source still has to substantiate its semantic claim, and an on-chain commitment does not establish the organization's identity or factual truth.
+
+Issuer-bound assessment sends explicit `User-Agent` and GitHub media-type headers to the GitHub REST API. The Studionet probe showed that GenVM could access GitHub API endpoints with those headers; requests without them previously received HTTP 403. Canonical GitHub commit existence and release tag resolution are checked. A lightweight tag must point directly to the candidate commit; an annotated tag is dereferenced and its target must point to that commit.
+
+When a required `TEST_STATUS` source is a canonical `/repos/{owner}/{repo}/actions/runs/{id}` endpoint, the registry also verifies the run ID, `completed` status, `success` conclusion, exact candidate `head_sha`, repository, `.github/workflows/ci.yml` path and `push` event. Those fields are checked by each validator and must all pass before admission. This proves GitHub reports a successful hosted run for the candidate commit. It does not prove the workflow itself is independent of repository maintainers or that it tested properties the workflow does not actually check.
+
 ## Principles
 
 - HTTPS only.
@@ -30,7 +36,7 @@ A policy selects mandatory roles and accepted host/path scopes per role.
 
 ## Retrieval limitation
 
-The pinned GenLayer SDK interface used by the contract does not expose a redirect-disable option. The contract rejects a response that is observed as 3xx, but cannot prove that a final 2xx response was not reached through an automatically followed redirect. This is an unresolved evidence-scope limitation. Prefer immutable commit-pinned sources and treat redirect-sensitive host scopes as unsuitable until the SDK exposes verifiable redirect behavior.
+The pinned GenLayer SDK interface used by the contract does not expose a redirect-disable option. The contract rejects a response that is observed as 3xx, but cannot prove that a final 2xx response was not reached through an automatically followed redirect. For issuer-bound evidence, a redirect to different bytes fails against the issuer's on-chain digest; a redirect to identical bytes does not change the committed content but still leaves origin unverifiable. Legacy self-declared policies have no issuer digest safeguard. Treat redirect-sensitive host scopes as unsuitable for independent-source claims until the runtime exposes verifiable redirect behavior.
 
 Validators must agree on each fetched source's HTTP status and full-content SHA-256; changed content between validator fetches blocks the assessment. Agreed commitments are passed through consensus and stored without a post-consensus refetch, avoiding a mutable-URL time-of-check/time-of-use mismatch. If a mutable source keeps changing, the candidate remains open for reassessment and no finalized attempt is stored until validators agree.
 

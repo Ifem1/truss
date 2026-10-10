@@ -1,0 +1,115 @@
+{
+  "project": "TRUSS",
+  "network": "studionet",
+  "chainId": 61999,
+  "rpc": "https://studio.genlayer.com/api",
+  "explorer": "https://explorer-studio.genlayer.com",
+  "registry": {
+    "address": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
+    "deploymentTransaction": "0xa5e50ed1a21aac590278d63db1f75ee91693fa8586378714fd14cf7de70ed024",
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "sourceCommit": "52aca980fe74147efee7b79c3e19652dc2d3bfa7",
+    "sourceSha256": "ec2d9405250bcc1574fdbace7a41d52db8019af50d7c4d31d07d3ccccf1df66d",
+    "deployedSourceSha256": "ec2d9405250bcc1574fdbace7a41d52db8019af50d7c4d31d07d3ccccf1df66d",
+    "sourceByteMatch": true
+  },
+  "previousRegistries": [
+    {
+      "address": "0x838EBF0779C05aFF47d9087Ec568c88c55F977f0",
+      "deploymentTransaction": "0x019b14c5cd6ec2705a28e250407681018073ba56dbcbf0583a876b6ba25cee46",
+      "status": "FINALIZED_SUPERSEDED_FINDING_TEXT_MISMATCH",
+      "sourceCommit": "19725a2f8d74f949f9bad835ad907406d0aaf21d"
+    },
+    {
+      "address": "0x0D27Fce351B34084003b10f3C3Dcc6BC0a1C51d3",
+      "status": "FINALIZED_SUPERSEDED_NO_GITHUB_REQUEST_HEADERS_FIXED"
+    },
+    {
+      "address": "0x059800DBA210d684098A2061a276f69E8499fBBd",
+      "status": "FINALIZED_SUPERSEDED_NO_GITHUB_REQUEST_HEADERS"
+    }
+  ],
+  "activationGate": {
+    "address": "0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
+    "deploymentTransaction": "0xc7a7a79da6818459709dfa6b450bd5adecd91a5c98263a272b5ef6a3bb16bf6d",
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "sourceSha256": "c14b7fe47ae60e1bb4ca03e8e4db97c34da447d65f3b96ed58c2681dbd7893ec",
+    "deployedSourceSha256": "c14b7fe47ae60e1bb4ca03e8e4db97c34da447d65f3b96ed58c2681dbd7893ec",
+    "sourceByteMatch": true,
+    "registryAddress": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
+    "policyKey": "truss-actions-v012-policy",
+    "policyDigest": "48b758ee118cd93cbbc7d4cdeac05f62ceb7e62eadaf2657bc0d25f2234d44f4"
+  },
+  "webAccessProbe": {
+    "address": "0xf2E9bD4D3368a718281E6D61A08B04B8F1546620",
+    "deploymentTransaction": "0x77d676db1fdde0f6d09c3a5d4318d34bc40def9a170c6a44f8158c9373192788",
+    "probeTransaction": "0x0d965830cd3ff57a3f7cf55b01d7f70446b2a82763efecdb73ea563514205f63",
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "results": {
+      "githubRest": 200,
+      "rawGithub": 200,
+      "jsDelivr": 200,
+      "githubGitProtocol": 200,
+      "githubActionsRunApi": 200,
+      "githubActionsHtml": 406
+    }
+  },
+  "policy": {
+    "key": "truss-actions-v012-policy",
+    "digest": "48b758ee118cd93cbbc7d4cdeac05f62ceb7e62eadaf2657bc0d25f2234d44f4",
+    "creationTransaction": "0x38927a47be449c996697fc9350f74c92dabf8ce0ea070f23c339169a0bccfaab",
+    "requiredRoles": ["RELEASE_IDENTITY", "TEST_STATUS"],
+    "evidenceSource": "GitHub REST API and tag-triggered Actions run API",
+    "issuerAddress": "0xd6423ae82a975d55c6ceac222827a727325e0459",
+    "walletIndependence": "Owner, publisher, and issuer keys are locally controlled; different addresses do not prove organizational independence."
+  },
+  "currentActionsCycle": {
+    "status": "ADMITTED_ACTIVATION_PENDING",
+    "repository": "Ifem1/truss",
+    "releaseLabel": "v0.1.2-actions-proof",
+    "commit": "52aca980fe74147efee7b79c3e19652dc2d3bfa7",
+    "tagObject": "c10939d6449a107dfd84de2981d69dc8727d6822",
+    "tagApiUrl": "https://api.github.com/repos/Ifem1/truss/git/ref/tags/v0.1.2-actions-proof",
+    "actionsRunId": 37973817856,
+    "actionsRunUrl": "https://api.github.com/repos/Ifem1/truss/actions/runs/37973817856",
+    "actionsRunConclusion": "success",
+    "actionsRunEvent": "push",
+    "actionsRunHeadSha": "52aca980fe74147efee7b79c3e19652dc2d3bfa7",
+    "actionsRunWorkflow": ".github/workflows/ci.yml",
+    "actionsRunHeadBranch": "v0.1.2-actions-proof",
+    "candidateKey": "truss-actions-v012-candidate",
+    "candidateOpenTransaction": "0xd19ad3becaffe013f56390a884b98573f98c3232fda89c2afd06db256d0953a3",
+    "issuerAttestationTransactions": [
+      "0x221f382ad7bd448df59aa5485ec7997638f082d120c1b26a794a8eee0be7fed4",
+      "0x1263f8afe522f0824c949eee6ee1351e7460439161674bfac83195c52b824856"
+    ],
+    "sealTransaction": "0x4bc04444ac9d14c15af2ed34ff857f2ba1d32773912d07898b14834f9e204ca1",
+    "assessmentTransaction": "0xbdc51067a9133d68406ad170bffd448a5dbe2c050dd848bb603f191263fb29be",
+    "assessmentStatus": "FINALIZED",
+    "assessmentResult": "MAJORITY_AGREE",
+    "verdict": "ADMITTED",
+    "identityMatch": "MATCH",
+    "identityFinding": "Canonical repository tag and commit match the candidate.",
+    "allProvenanceChecks": true,
+    "activationTransactions": [
+      {
+        "hash": "0x6aa220f4d3710d78b1684f176d10931e6d80cc2383a5b2802289ac50258d2970",
+        "status": "FINALIZED",
+        "result": "NO_MAJORITY",
+        "reason": "Leader execution timed out before quorum."
+      },
+      {
+        "hash": "0x509bb4b5e1e5a1567a560d8d7611fd13d5e3434cfcecaacc02518e84189d9f8f",
+        "status": "PROPOSING_AT_LAST_CHECK",
+        "result": "NO_MAJORITY",
+        "reason": "No leader or validator votes recorded at last check."
+      }
+    ],
+    "activated": false
+  },
+  "productionFrontendUpdated": false,
+  "note": "The frontend at the production alias still uses the historical contract; production cutover awaits finalized activation of this admitted release."
+}

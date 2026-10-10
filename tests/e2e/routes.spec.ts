@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { abi, decodeInputData } from "genlayer-js";
 
 const walletAddress = "0x1234567890abcdef1234567890abcdef12345678";
-const contractAddress = "0xEf2aF888D4e764678d97a1EC38e7519047440fFb";
+const contractAddress = "0x1111111111111111111111111111111111111111";
 const txHash = `0x${"1".repeat(64)}` as const;
 const fixturePolicy = {
   policy_key: "policy-e2e", lineage_key: "lineage-e2e", owner: walletAddress,
@@ -59,8 +59,9 @@ async function installWallet(page: Page, initialChain = "0xf22f") {
   }, { initialChain, walletAddress });
 }
 
-async function installContractRpc(page: Page, initialStatus: "ACCEPTED" | "FINALIZED" = "ACCEPTED", execution: "SUCCESS" | "ERROR" = "SUCCESS") {
+async function installContractRpc(page: Page, initialStatus: "ACCEPTED" | "FINALIZED" = "ACCEPTED", execution: "SUCCESS" | "ERROR" = "SUCCESS", candidateOwner = walletAddress, candidateStatus = "OPEN") {
   let status = initialStatus;
+  let activeRelease = "";
   const variants: string[] = [];
   const calls: string[] = [];
   await page.route("**/api", async (route) => {
@@ -75,11 +76,14 @@ async function installContractRpc(page: Page, initialStatus: "ACCEPTED" | "FINAL
       if (params.transaction_hash_variant) variants.push(params.transaction_hash_variant);
       let value = "";
       if (method === "get_policy_json") value = JSON.stringify(fixturePolicy);
+      if (method === "get_admitted_head") value = candidateStatus === "ADMITTED" ? "candidate-browser-e2e" : "";
+      if (method === "get_configuration_json") value = JSON.stringify({ registry_address: contractAddress, operator: walletAddress, lineage_key: fixturePolicy.lineage_key, policy_digest: fixturePolicy.policy_digest, repository_owner: "Ifem1", repository_name: "truss" });
+      if (method === "get_active_candidate") value = activeRelease;
       if (method === "get_candidate_json" && args[0] === "candidate-browser-e2e") value = JSON.stringify({
         candidate_key: "candidate-browser-e2e", policy_key: "policy-e2e", policy_digest: fixturePolicy.policy_digest,
-        lineage_key: fixturePolicy.lineage_key, owner: walletAddress, repository_owner: "Ifem1", repository_name: "truss",
+        lineage_key: fixturePolicy.lineage_key, owner: candidateOwner, repository_owner: "Ifem1", repository_name: "truss",
         release_label: "0.1.0", commit_sha: "c".repeat(40), predecessor_candidate_key: "", coordinate_digest: "fixture-coordinate",
-        opened_at: 1, status: "OPEN", evidence_rounds: [{ round: 1, submitted_at: 1, evidence_round_digest: "fixture-round", evidence: [{ role: "RELEASE_IDENTITY", url: "https://api.github.com/repos/Ifem1/truss/commits/example" }] }], assessment_attempts: [],
+        opened_at: 1, status: candidateStatus, evidence_rounds: [{ round: 1, submitted_at: 1, evidence_round_digest: "fixture-round", evidence: [{ role: "RELEASE_IDENTITY", url: "https://api.github.com/repos/Ifem1/truss/commits/example" }] }], assessment_attempts: candidateStatus === "ADMITTED" ? [{ verdict: "ADMITTED", assessment_digest: "fixture-assessment" }] : [],
       });
       const encoded = Buffer.from(abi.calldata.encode(value)).toString("hex");
       return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ jsonrpc: "2.0", id: request.id, result: { data: encoded } }) });
@@ -94,7 +98,7 @@ async function installContractRpc(page: Page, initialStatus: "ACCEPTED" | "FINAL
     const result = request.method === "eth_estimateGas" ? "0x2bf20" : request.method === "eth_gasPrice" || request.method === "eth_getTransactionCount" ? "0x1" : null;
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ jsonrpc: "2.0", id: request.id, result }) });
   });
-  return { setStatus(next: "ACCEPTED" | "FINALIZED") { status = next; }, calls, variants };
+  return { setStatus(next: "ACCEPTED" | "FINALIZED") { status = next; }, setActiveRelease(key: string) { activeRelease = key; }, calls, variants };
 }
 
 async function fillCandidateForm(page: Page) {
@@ -218,6 +222,34 @@ test("a submitted candidate remains nonfinal until FINALIZED, then reloads autho
   await page.reload();
   await expect(page.getByRole("heading", { name: "0.1.0" })).toBeVisible();
   await expect(page.getByText("OPEN", { exact: true })).toBeVisible();
+});
+
+test("a nonowner wallet can initiate assessment without editing the frozen dossier", async ({ page }) => {
+  await installWallet(page);
+  const rpc = await installContractRpc(page, "FINALIZED", "SUCCESS", "0x2222222222222222222222222222222222222222");
+  await page.goto("/release/candidate-browser-e2e");
+  await expect(page.getByRole("heading", { name: "0.1.0" })).toBeVisible();
+  await page.getByRole("button", { name: /connect wallet/i }).click();
+  await page.getByRole("button", { name: /request validator assessment/i }).click();
+  await expect.poll(() => page.evaluate(() => (window as Window & { __trussSubmitted?: boolean }).__trussSubmitted)).toBe(true);
+  await expect(page.getByText("FINALIZED · authoritative contract state reloaded")).toBeVisible({ timeout: 15000 });
+  expect(rpc.calls.filter((method) => method === "get_candidate_json").length).toBeGreaterThan(1);
+});
+
+test("activation waits for finality and rereads consumer state", async ({ page }) => {
+  await installWallet(page);
+  const rpc = await installContractRpc(page, "ACCEPTED", "SUCCESS", walletAddress, "ADMITTED");
+  await page.goto("/release/candidate-browser-e2e");
+  await page.getByRole("button", { name: /connect wallet/i }).click();
+  await expect(page.getByText(/current activated candidate:/i)).toBeVisible();
+  await page.getByRole("button", { name: /activate admitted release/i }).click();
+  await expect(page.getByText("submitted · waiting for FINALIZED")).toBeVisible();
+  await expect(page.getByText(/current activated candidate:.*none/i)).toBeVisible();
+  rpc.setActiveRelease("candidate-browser-e2e");
+  rpc.setStatus("FINALIZED");
+  await expect(page.getByText("FINALIZED · authoritative contract state reloaded")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText(/current activated candidate:.*candidate-browser-e2e/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: /activate admitted release/i })).toBeDisabled();
 });
 
 test("a rejected transaction signature never enters submitted state", async ({ page }) => {

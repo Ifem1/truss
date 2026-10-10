@@ -1,0 +1,2 @@
+# The deployed Studionet registry contains these exact CRLF bytes.
+contracts/truss_registry.py -text
