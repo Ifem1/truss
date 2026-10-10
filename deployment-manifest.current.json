@@ -12,7 +12,14 @@
     "sourceCommit": "52aca980fe74147efee7b79c3e19652dc2d3bfa7",
     "sourceSha256": "ec2d9405250bcc1574fdbace7a41d52db8019af50d7c4d31d07d3ccccf1df66d",
     "deployedSourceSha256": "ec2d9405250bcc1574fdbace7a41d52db8019af50d7c4d31d07d3ccccf1df66d",
-    "sourceByteMatch": true
+    "sourceByteMatch": true,
+    "repositorySourceStatus": "PRE_ISSUER_HARDENING"
+  },
+  "hardenedRepositorySource": {
+    "file": "contracts/truss_registry.py",
+    "deploymentStatus": "NOT_DEPLOYED",
+    "reason": "Studionet LATEST_FINAL cross-contract on-chain reads time out in the isolated minimal probe; no speculative activation or replacement deployment was submitted.",
+    "sourceSha256": "830b5769f931f5ea09444f90cc118ec2075cea51325e3369dfb5ce454a0639ee"
   },
   "previousRegistries": [
     {
@@ -39,6 +46,7 @@
     "deployedSourceSha256": "c14b7fe47ae60e1bb4ca03e8e4db97c34da447d65f3b96ed58c2681dbd7893ec",
     "sourceByteMatch": true,
     "registryAddress": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
+    "repositorySourceStatus": "MATCHES_CURRENT_GATE_SOURCE",
     "policyKey": "truss-actions-v012-policy",
     "policyDigest": "48b758ee118cd93cbbc7d4cdeac05f62ceb7e62eadaf2657bc0d25f2234d44f4"
   },
@@ -61,11 +69,9 @@
     "key": "truss-actions-v012-policy",
     "digest": "48b758ee118cd93cbbc7d4cdeac05f62ceb7e62eadaf2657bc0d25f2234d44f4",
     "creationTransaction": "0x38927a47be449c996697fc9350f74c92dabf8ce0ea070f23c339169a0bccfaab",
-    "requiredRoles": [
-      "RELEASE_IDENTITY",
-      "TEST_STATUS"
-    ],
-    "evidenceSource": "GitHub REST API and tag-triggered Actions run API",
+    "requiredRoles": ["RELEASE_IDENTITY", "TEST_STATUS"],
+    "evidenceSource": "Issuer-committed GitHub REST/Actions response bytes; redirect final origin is not exposed by the SDK",
+    "testStatusAssurance": "ISSUER_COMMITTED_GITHUB_ACTIONS_METADATA_ONLY",
     "issuerAddress": "0xd6423ae82a975d55c6ceac222827a727325e0459",
     "walletIndependence": "Owner, publisher, and issuer keys are locally controlled; different addresses do not prove organizational independence."
   },
@@ -112,14 +118,14 @@
       },
       {
         "hash": "0xfc9ce4ea46e6e2d882994575d5dc11899fa28d06e982e13581067c26e29d51d5",
-        "createdAt": "2026-10-10T10:20:37.362967+01:00",
+        "createdAt": "2026-10-10T09:20:37.362967+00:00",
         "status": "FINALIZED",
         "result": "NO_MAJORITY",
         "reason": "LEADER_EXEC_TIMEOUT after 600 seconds; 0 committed/revealed votes; node 5525 policy:prd-grok."
       },
       {
         "hash": "0xea5f0405d67facb39b25aa23d28222a1e1ba1c11960443f66182a1964525b0e6",
-        "createdAt": "2026-10-10T11:16:42.464166+01:00",
+        "createdAt": "2026-10-10T10:16:42.464166+00:00",
         "status": "FINALIZED",
         "result": "NO_MAJORITY",
         "reason": "Invalid-candidate live rejection probe finalized as Leader Timeout; GenVM error timeout; leader execution exceeded 600 seconds. The TRUSS rejection path was not reached."
@@ -128,6 +134,7 @@
     "activated": false
   },
   "productionFrontendUpdated": true,
+  "productionReplacementCutover": "BLOCKED_PENDING_MINIMAL_LATEST_FINAL_PROBE_SUCCESS",
   "productionDeployment": {
     "project": "ifem1s-projects/truss",
     "deploymentId": "dpl_4BmBjXhuVgiBLyffGLD5MFU2Eoqh",
@@ -157,7 +164,6 @@
     "appealBondCalculationSupported": false,
     "status": "BLOCKED_MINIMAL_CROSS_CONTRACT_WRITE_TIMEOUT"
   },
-  "note": "The production frontend uses the deployed registry and gate. The registry head is admitted; the gate state remains empty. A minimal independent on-chain write consuming a cross-contract LATEST_FINAL view finalized NO_MAJORITY with LEADER_EXEC_TIMEOUT after 600 seconds. Live activation and live contract rejection remain unproven; see docs/STUDIONET_CROSS_CONTRACT_ISSUE.md.",
   "minimalCrossContractProbe": {
     "status": "BLOCKED_STUDIONET_GENVM_LEADER_TIMEOUT",
     "sourceAddress": "0xB786E05f18Ed6B03aa03d5a67Cc9Cb9f96Cf7aDC",
@@ -172,5 +178,7 @@
     "hostedGenvmVersion": "not exposed by receipt",
     "cliVersion": "0.39.1",
     "localLintGenVmVersion": "v0.3.0-rc7"
-  }
+  },
+  "runtimeIssue": "https://github.com/genlayerlabs/genvm-manager/issues/60",
+  "note": "Production remains on the previously deployed registry and activation gate. The deployed registry is pre-issuer-hardening; the deployed gate source matches the current gate. Canonical reads confirm an admitted registry head but an empty gate state. Three activation transactions and the invalid-candidate probe finalized NO_MAJORITY after leader execution timed out at 600 seconds. The negative-path call did not reach TRUSS contract rejection. The hardened repository registry is not deployed, and successful gate lifecycle enforcement is not proven complete."
 }
