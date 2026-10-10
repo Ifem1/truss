@@ -39,6 +39,21 @@ The successful calls show the observed quota was not exhausted; neither 524 had 
 
 **Conclusion:** simple request-volume throttling is not supported by these measurements. The `LATEST_FINAL` inner view still stalled when calls were far below the observed limit and adjacent default reads succeeded. Shared backend overload or an internal per-operation limit remains possible; HTTP observations cannot locate the stall within state selection, cross-contract dispatch, GenVM, or Studionet hosting. No additional write or deployment was submitted. Preserve finalized-state enforcement and diagnose the hosted path before another activation.
 
+## Contract and selector audit (2026-10-10)
+
+We fetched both deployed probe sources with the read-only `gen_getContractCode` client action and compared them with the repository files after normalizing Windows CRLF to LF:
+
+| Deployed contract | On-chain source SHA-256 (LF) | Repository comparison |
+|---|---|---|
+| Source `0xB786E05f18Ed6B03aa03d5a67Cc9Cb9f96Cf7aDC` | `0d5f5ddcdda02eee30159d2454d1f948109b6e0031764020e93537f366f82126` | Exact match after line-ending normalization. |
+| Caller `0xc3aB10e75f5a13fA47906C7B8B9d81298a64e68a` | `dffad7d3655f8dc9fa094375f187d64f171a67db90aca0ce8722a2c08a3af7e0` | Exact match after line-ending normalization and excluding the later-added, unused `consume_default_view` comparator. The deployed `read_default_view`, `read_latest_final_view`, and `consume_latest_final_view` methods match. |
+
+The caller's successful default read proves its stored target address and nested call encoding reach the expected source method. The default and `LATEST_FINAL` reads use the same caller address, source address, outer `gen_call` shape, and outer `transaction_hash_variant`; the difference is the inner storage view requested by the caller method. Thus the deployed reproduction is exercising the selector difference described above, not a different registry address or stale caller implementation.
+
+GenVM's [CallContract ABI](https://github.com/genlayerlabs/genvm-manager/blob/main/docs/website/src/spec/02-execution-environment/03-wasi_genlayer_sdk/02-gl_call.rst) defines `storage_view` values `0=default`, `1=latest_finalized`, and `2=latest_decided`. Its [cross-major system test caller](https://github.com/genlayerlabs/genvm-manager/blob/main/tests/system/cross-major/assets/v0.3/state_caller.py) passes the finalized selector through `view(state=mode)`, and the [test asserts that the selected state mode crosses the nested call boundary](https://github.com/genlayerlabs/genvm-manager/blob/main/tests/system/cross-major/test.py). GenVM's changelog says the old symbolic labels `latest_final` / `latest_non_final` were renamed to `latest_finalized` / `latest_decided` while numeric values remain unchanged. Our deployed contract is pinned to the older `py-genlayer` dependency and uses its `StorageType.LATEST_FINAL` name; the repository's Direct Mode check observes this as numeric selector `1`. The symbolic name difference alone does not indicate an invalid selector.
+
+**Assessment:** this audit found no wrong address, stale deployed method, outer RPC parameter, or obvious selector-number mistake. The default and finalized sub-VM paths diverge only at the requested inner state selector, consistent with the HTTP and leader timeout evidence. A version-specific interaction between the older pinned `py-genlayer` contract API and Studionet's hosted GenVM remains possible because the hosted runner build and internal call trace are unavailable. This evidence narrows the investigation; it does not prove the defect is in GenVM rather than Studionet's host or state backend.
+
 ## Runner versions and commands
 
 - Network: Studionet chain `61999`, RPC `https://studio.genlayer.com/api`.
