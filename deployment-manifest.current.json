@@ -106,10 +106,28 @@
         "status": "PROPOSING_AT_LAST_CHECK",
         "result": "NO_MAJORITY",
         "reason": "No leader or validator votes recorded at last check."
+      },
+      {
+        "hash": "0xfc9ce4ea46e6e2d882994575d5dc11899fa28d06e982e13581067c26e29d51d5",
+        "createdAt": "2026-10-10T09:20:37.362967+00:00",
+        "status": "PROPOSING_AT_LAST_CHECK",
+        "result": "NO_MAJORITY",
+        "reason": "No leader or validator votes recorded; gate remains without an active candidate."
       }
     ],
     "activated": false
   },
-  "productionFrontendUpdated": false,
-  "note": "The frontend at the production alias still uses the historical contract; production cutover awaits finalized activation of this admitted release."
+  "productionFrontendUpdated": true,
+  "productionDeployment": {
+    "project": "ifem1s-projects/truss",
+    "deploymentId": "dpl_DG4gHbFrrknxnPLfsy49NbpUXRZD",
+    "deploymentUrl": "https://truss-jazz5xtwc-ifem1s-projects.vercel.app",
+    "alias": "https://truss-gray.vercel.app",
+    "status": "READY",
+    "registryAddress": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
+    "activationGateAddress": "0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
+    "smokeTestHttpStatus": 200,
+    "bundleAddressVerification": true
+  },
+  "note": "Production now reads the final registry and activation gate. The admitted release is not yet active because Studionet has not assigned a leader or recorded validator votes for the activation transaction."
 }
