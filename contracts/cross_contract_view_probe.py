@@ -33,6 +33,13 @@ class CrossContractViewProbe(gl.Contract):
         self.consumed_marker = marker
         return marker
 
+    @gl.public.write
+    def consume_default_view(self) -> str:
+        source = gl.get_contract_at(Address(self.source_address))
+        marker = source.view().get_marker()
+        self.consumed_marker = marker
+        return marker
+
     @gl.public.view
     def get_consumed_marker(self) -> str:
         return self.consumed_marker

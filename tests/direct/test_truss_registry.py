@@ -124,17 +124,18 @@ def test_policy_owner_can_designate_a_distinct_publisher_without_impersonation(d
 def test_designated_issuer_commitments_bind_the_sealed_round(direct_vm, direct_deploy):
     c = setup(direct_vm, direct_deploy)
     policy_key = "policy-with-issuers"
+    ref_url = "https://api.github.com/repos/Ifem1/fixture/git/ref/tags/v1"
     c.create_policy_with_issuers(
         policy_key, c._test_lineage_key, "TRUSS fixture", "Ifem1", "fixture",
         "This public fixture exercises designated wallet evidence attestations.",
         "Admission requires exact candidate coordinates and authenticated content commitments from the policy-designated evidence issuer.",
         json.dumps([{"id":"CHECKS_PASS","title":"Checks pass","rule":"The exact committed release fixture reports required checks passed."}]),
         json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
-        json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/identity"],"TEST_STATUS":["api.github.com|/repos/Ifem1/fixture/actions/runs/"]}),
+        json.dumps({"RELEASE_IDENTITY":["api.github.com|/repos/Ifem1/fixture/git/ref/tags/"],"TEST_STATUS":["api.github.com|/repos/Ifem1/fixture/actions/runs/"]}),
         c._test_policy_key, "0x" + "22" * 20,
         json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
     )
-    evidence = json.dumps([{"role":"RELEASE_IDENTITY","url":IDENTITY},{"role":"TEST_STATUS","url":ISSUER_TESTS}])
+    evidence = json.dumps([{"role":"RELEASE_IDENTITY","url":ref_url},{"role":"TEST_STATUS","url":ISSUER_TESTS}])
     direct_vm.sender = bytes.fromhex("22" * 20)
     c.open_candidate("issuer-candidate", policy_key, "v1", "a" * 40, "", evidence)
     frozen = json.loads(c.get_candidate_json("issuer-candidate"))["evidence_rounds"][0]
@@ -142,12 +143,12 @@ def test_designated_issuer_commitments_bind_the_sealed_round(direct_vm, direct_d
         c.assess_candidate("issuer-candidate")
     with direct_vm.expect_revert("required issuer attestation"):
         c.seal_candidate("issuer-candidate")
-    body = "Public synthetic release record and test result."
+    body = json.dumps({"ref":"refs/tags/v1","object":{"type":"commit","sha":"a"*40}})
     digest = hashlib.sha256(body.encode()).hexdigest()
     with direct_vm.expect_revert("designated role issuer"):
-        c.attest_evidence("issuer-candidate", "RELEASE_IDENTITY", IDENTITY, digest)
+        c.attest_evidence("issuer-candidate", "RELEASE_IDENTITY", ref_url, digest)
     direct_vm.sender = bytes.fromhex("33" * 20)
-    c.attest_evidence("issuer-candidate", "RELEASE_IDENTITY", IDENTITY, digest)
+    c.attest_evidence("issuer-candidate", "RELEASE_IDENTITY", ref_url, digest)
     action_body = json.dumps({
         "id": 12345, "status": "completed", "conclusion": "success", "head_sha": "a"*40,
         "repository": {"full_name": "Ifem1/fixture"}, "path": ".github/workflows/ci.yml", "event": "push",
@@ -164,16 +165,16 @@ def test_designated_issuer_commitments_bind_the_sealed_round(direct_vm, direct_d
     assert state["sealed_evidence_rounds"] == [1]
     assert len(state["evidence_attestations"]) == 2
     issuer_result = response()
-    issuer_result["evidence_states"][1]["url"] = ISSUER_TESTS
+    issuer_result["evidence_states"] = [
+        {"url": ref_url, "state": "SUPPORTS", "finding": "Issuer-committed canonical release tag metadata."},
+        {"url": ISSUER_TESTS, "state": "SUPPORTS", "finding": "Issuer-committed Actions run metadata."},
+    ]
     mock_assessment(direct_vm, issuer_result, body=body)
-    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/commits/.*", {"status": 200, "body": json.dumps({"sha":"a"*40})})
-    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/ref/tags/v1", {"status": 200, "body": json.dumps({"ref":"refs/tags/v1","object":{"type":"tag","sha":"b"*40}})})
-    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/tags/.*", {"status": 200, "body": json.dumps({"sha":"b"*40,"object":{"type":"commit","sha":"a"*40}})})
+    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/ref/tags/v1", {"status": 200, "body": body})
     direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/actions/runs/12345", {"status": 200, "body": action_body})
     assert c.assess_candidate("issuer-candidate")["verdict"] == "ADMITTED"
     assert direct_vm.run_validator() is True
-    mock_assessment(direct_vm, body=body)
-    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/commits/.*", {"status": 200, "body": json.dumps({"sha":"a"*40})})
+    mock_assessment(direct_vm, issuer_result, body=body)
     direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/ref/tags/v1", {"status": 200, "body": json.dumps({"ref":"refs/tags/v1","object":{"type":"commit","sha":"b"*40}})})
     assert direct_vm.run_validator() is False
 
@@ -202,6 +203,35 @@ def test_issuer_digest_mismatch_cannot_support_admission(direct_vm, direct_deplo
     result = c.assess_candidate("wrong-digest")
     assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
     assert c.get_admitted_head(c._test_lineage_key) == ""
+
+
+def test_uncommitted_or_substituted_redirect_body_is_unavailable(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    body = b"issuer-approved bytes"
+    digest = hashlib.sha256(body).hexdigest()
+    evidence = [{"role": "RELEASE_IDENTITY", "url": IDENTITY}]
+    direct_vm.clear_mocks()
+    direct_vm.mock_web(r".*evidence\.example\.org/.*", {"status": 200, "body": body.decode()})
+
+    missing = c._fetch(evidence, {})[0]
+    assert missing["content"] == ""
+    assert missing["error"] == "missing issuer content commitment"
+
+    substituted = c._fetch(evidence, {IDENTITY: hashlib.sha256(b"different bytes").hexdigest()})[0]
+    assert substituted["content"] == ""
+    assert substituted["content_digest"] == digest
+    assert substituted["error"] == "issuer commitment mismatch"
+
+
+def test_github_provenance_api_body_requires_exact_issuer_commitment(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    url = "https://api.github.com/repos/Ifem1/truss/git/ref/tags/v1.0.0"
+    body = json.dumps({"ref": "refs/tags/v1.0.0", "object": {"type": "commit", "sha": "a"*40}})
+    direct_vm.clear_mocks()
+    direct_vm.mock_web(r".*/git/ref/tags/v1\.0\.0", {"status": 200, "body": body})
+    assert c._github_json(url, {}) == {}
+    assert c._github_json(url, {url: hashlib.sha256(body.encode()).hexdigest()})["ref"] == "refs/tags/v1.0.0"
+    assert c._github_json(url, {url: hashlib.sha256(b"substituted response").hexdigest()}) == {}
 
 
 def test_issuer_bound_test_status_rejects_arbitrary_attested_content(direct_vm, direct_deploy):
@@ -282,28 +312,32 @@ def test_github_requests_use_supported_headers_and_actions_run_is_commit_bound(d
         "User-Agent": "TRUSS/1.0", "Accept": "*/*",
     }
     direct_vm.clear_mocks()
-    direct_vm.mock_web(r".*/repos/Ifem1/truss/commits/" + "a"*40, {"status": 200, "body": json.dumps({"sha":"a"*40})})
-    direct_vm.mock_web(r".*/repos/Ifem1/truss/git/ref/tags/v1.0.0", {"status": 200, "body": json.dumps({"ref":"refs/tags/v1.0.0","object":{"type":"commit","sha":"a"*40}})})
-    direct_vm.mock_web(r".*/repos/Ifem1/truss/actions/runs/12345", {"status": 200, "body": json.dumps({
+    ref_url = "https://api.github.com/repos/Ifem1/truss/git/ref/tags/v1.0.0"
+    actions_body = json.dumps({
         "id": 12345, "status": "completed", "conclusion": "success", "head_sha": "a"*40,
         "repository": {"full_name": "Ifem1/truss"}, "path": ".github/workflows/ci.yml", "event": "push",
-    })})
+    })
+    ref_body = json.dumps({"ref":"refs/tags/v1.0.0","object":{"type":"commit","sha":"a"*40}})
+    direct_vm.mock_web(r".*/repos/Ifem1/truss/git/ref/tags/v1.0.0", {"status": 200, "body": ref_body})
+    direct_vm.mock_web(r".*/repos/Ifem1/truss/actions/runs/12345", {"status": 200, "body": actions_body})
     policy = {"repository_owner": "Ifem1", "repository_name": "truss"}
     candidate = {"commit_sha": "a"*40, "release_label": "v1.0.0"}
     evidence = [{"role":"TEST_STATUS", "url":api_url}]
-    provenance = c._github_provenance(policy, candidate, evidence)
+    commitments = {ref_url: hashlib.sha256(ref_body.encode()).hexdigest(),
+                   api_url: hashlib.sha256(actions_body.encode()).hexdigest()}
+    provenance = c._github_provenance(policy, candidate, evidence, commitments)
     assert c._provenance_satisfied(provenance)
     assessment = c._apply_provenance_result({"identity_match":"MATCH", "identity_finding":"stale model text"}, provenance)
     assert assessment["identity_match"] == "MATCH"
     assert assessment["identity_finding"] == "Canonical repository tag and commit match the candidate."
     direct_vm.clear_mocks()
-    direct_vm.mock_web(r".*/repos/Ifem1/truss/commits/" + "a"*40, {"status": 200, "body": json.dumps({"sha":"a"*40})})
-    direct_vm.mock_web(r".*/repos/Ifem1/truss/git/ref/tags/v1.0.0", {"status": 200, "body": json.dumps({"ref":"refs/tags/v1.0.0","object":{"type":"commit","sha":"a"*40}})})
-    direct_vm.mock_web(r".*/repos/Ifem1/truss/actions/runs/12345", {"status": 200, "body": json.dumps({
+    direct_vm.mock_web(r".*/repos/Ifem1/truss/git/ref/tags/v1.0.0", {"status": 200, "body": ref_body})
+    failed_body = json.dumps({
         "id": 12345, "status": "completed", "conclusion": "success", "head_sha": "b"*40,
         "repository": {"full_name": "Ifem1/truss"}, "path": ".github/workflows/ci.yml", "event": "push",
-    })})
-    failed = c._github_provenance(policy, candidate, evidence)
+    })
+    direct_vm.mock_web(r".*/repos/Ifem1/truss/actions/runs/12345", {"status": 200, "body": failed_body})
+    failed = c._github_provenance(policy, candidate, evidence, commitments)
     assert not c._provenance_satisfied(failed)
     assessment = c._apply_provenance_result({"identity_match":"MATCH", "identity_finding":"model text"}, failed)
     assert assessment["identity_match"] == "UNVERIFIED"
@@ -369,18 +403,18 @@ def test_candidate_binds_commit_policy_digest_coordinate_and_rejects_replay(dire
         open_candidate(c, "candidate-bad", commit="not-a-commit")
 
 
-def test_admitted_lifecycle_advances_head_only_after_assessment(direct_vm, direct_deploy):
+def test_legacy_uncommitted_evidence_cannot_admit(direct_vm, direct_deploy):
     c = setup(direct_vm, direct_deploy)
     assert not hasattr(c, "admit_release") and not hasattr(c, "admit_candidate")
     open_candidate(c)
     assert c.get_admitted_head(c._test_lineage_key) == ""
     result = assess(direct_vm, c, response(verdict="REJECTED"))
     record = json.loads(c.get_candidate_json("candidate-001"))
-    # The LLM top-level label is ignored; structured classifications control.
-    assert result["verdict"] == "ADMITTED"
-    assert all(item["http_status"] == 200 and item["content_digest"] for item in result["evidence_states"])
-    assert record["assessment_attempts"][0]["verdict"] == "ADMITTED"
-    assert c.get_admitted_head(c._test_lineage_key) == "candidate-001"
+    assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
+    assert all(item["http_status"] == 0 and item["state"] == "UNAVAILABLE"
+               and item["content_digest"] == "" for item in result["evidence_states"])
+    assert record["assessment_attempts"][0]["verdict"] == "INSUFFICIENT_EVIDENCE"
+    assert c.get_admitted_head(c._test_lineage_key) == ""
     assert direct_vm.run_validator() is True
 
 
@@ -388,7 +422,7 @@ def test_rejection_and_uncertainty_leave_head_unchanged(direct_vm, direct_deploy
     c = setup(direct_vm, direct_deploy)
     open_candidate(c)
     result = assess(direct_vm, c, response(criterion="VIOLATED", verdict="ADMITTED"))
-    assert result["verdict"] == "REJECTED"
+    assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
     assert c.get_admitted_head(c._test_lineage_key) == ""
 
 
@@ -403,8 +437,8 @@ def test_retry_appends_new_round_and_preserves_each_attempt(direct_vm, direct_de
         {"role":"RELEASE_IDENTITY","url":IDENTITY},{"role":"TEST_STATUS","url":TESTS}])) == 2
     second = assess(direct_vm, c, response(criterion="CONFLICTING", verdict="ADMITTED"))
     state = json.loads(c.get_candidate_json("candidate-001"))
-    assert second["verdict"] == "CONFLICTING_EVIDENCE"
-    assert [a["verdict"] for a in state["assessment_attempts"]] == ["INSUFFICIENT_EVIDENCE", "CONFLICTING_EVIDENCE"]
+    assert second["verdict"] == "INSUFFICIENT_EVIDENCE"
+    assert [a["verdict"] for a in state["assessment_attempts"]] == ["INSUFFICIENT_EVIDENCE", "INSUFFICIENT_EVIDENCE"]
     assert [e["round"] for e in state["evidence_rounds"]] == [1, 2]
     assert c.get_admitted_head(c._test_lineage_key) == ""
     with direct_vm.expect_revert("candidate is not open for assessment"):
@@ -419,7 +453,7 @@ def test_unrelated_wallet_can_assess_only_the_frozen_bundle(direct_vm, direct_de
     mock_assessment(direct_vm)
     result = c.assess_candidate("candidate-001")
     after = json.loads(c.get_candidate_json("candidate-001"))
-    assert result["verdict"] == "ADMITTED"
+    assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
     assert after["owner"] == before["owner"]
     assert after["policy_digest"] == before["policy_digest"]
     assert after["evidence_rounds"] == before["evidence_rounds"]
@@ -473,8 +507,9 @@ def test_successful_nonempty_fetch_cannot_be_classified_unavailable(direct_vm, d
     open_candidate(c)
     result = assess(direct_vm, c, response(identity_role="UNAVAILABLE", test_role="UNAVAILABLE"),
                     status=200, body="Public non-empty synthetic evidence content.")
-    assert all(item["http_status"] == 200 and item["content_digest"] for item in result["evidence_states"])
-    assert [item["state"] for item in result["evidence_states"]] == ["NEUTRAL", "NEUTRAL"]
+    assert all(item["http_status"] == 0 and item["state"] == "UNAVAILABLE" and not item["content_digest"]
+               for item in result["evidence_states"])
+    assert [item["state"] for item in result["evidence_states"]] == ["UNAVAILABLE", "UNAVAILABLE"]
     assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
 
 
@@ -482,7 +517,7 @@ def test_conflicting_role_evidence_is_derived_deterministically(direct_vm, direc
     c = setup(direct_vm, direct_deploy)
     open_candidate(c)
     result = assess(direct_vm, c, response(test_role="CONTRADICTS"))
-    assert result["verdict"] == "REJECTED"
+    assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
     assert c.get_admitted_head(c._test_lineage_key) == ""
 
 
@@ -490,13 +525,12 @@ def test_stale_predecessor_is_terminalized_without_head_advance(direct_vm, direc
     c = setup(direct_vm, direct_deploy)
     open_candidate(c, "candidate-001", commit="a"*40)
     open_candidate(c, "candidate-002", commit="b"*40)
-    assess(direct_vm, c)
-    assert c.get_admitted_head(c._test_lineage_key) == "candidate-001"
+    c.admitted_head_by_lineage[c._test_lineage_key] = "current-head"
     stale = c.assess_candidate("candidate-002")
     record = json.loads(c.get_candidate_json("candidate-002"))
     assert stale["deterministic_rejection"] == "STALE_PREDECESSOR"
     assert record["status"] == "REJECTED"
-    assert c.get_admitted_head(c._test_lineage_key) == "candidate-001"
+    assert c.get_admitted_head(c._test_lineage_key) == "current-head"
 
 
 def test_redirect_http_error_oversize_and_prompt_injection_fail_closed(direct_vm, direct_deploy):
@@ -547,11 +581,11 @@ def test_validator_rejects_decision_field_disagreement(direct_vm, direct_deploy)
     assert direct_vm.run_validator(leader_result=other) is False
 
 
-def test_validator_rejects_mutable_source_content_disagreement(direct_vm, direct_deploy):
+def test_validator_preserves_fail_closed_uncommitted_evidence(direct_vm, direct_deploy):
     c = setup(direct_vm, direct_deploy)
     open_candidate(c)
     assess(direct_vm, c)
     direct_vm.clear_mocks()
-    direct_vm.mock_web(r".*evidence\.example\.org/.*", {"status": 200, "body": "The public synthetic release fixture changed after leader retrieval."})
-    direct_vm.mock_llm(PROMPT, json.dumps(response()))
+    direct_vm.mock_llm(r"Two assessments already match on all decision fields", json.dumps({"equivalent": True}))
     assert direct_vm.run_validator() is False
+    assert c.get_admitted_head(c._test_lineage_key) == ""

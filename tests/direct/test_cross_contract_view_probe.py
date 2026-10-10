@@ -39,3 +39,11 @@ def test_onchain_write_consumes_latest_final_cross_view(direct_vm, direct_deploy
     assert probe.consume_latest_final_view() == MARKER
     assert states == [1]
     assert probe.get_consumed_marker() == MARKER
+
+
+def test_onchain_write_consumes_default_cross_view(direct_vm, direct_deploy):
+    probe, states = make_probe(direct_vm, direct_deploy)
+
+    assert probe.consume_default_view() == MARKER
+    assert states == [2]
+    assert probe.get_consumed_marker() == MARKER
