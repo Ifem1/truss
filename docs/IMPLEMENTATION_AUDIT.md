@@ -23,7 +23,7 @@ These are source changes only until they are deployed with a byte-matched contra
 
 ## Verification and security limits
 
-- Direct Mode: 55 passed, including 14 simulated cross-contract consumer cases.
+- Direct Mode: 57 passed, including 14 simulated cross-contract consumer cases.
 - The three activation receipts were inspected: leader node/model pairs were `5528/policy:prd-qwen`, `5521/policy:prd-sonnet`, and `5525/policy:prd-grok`; each reports the same 600-second leader execution timeout.
 - `genlayer trace` cannot retrieve traces because Studionet RPC returns `-32601 Method not found` for `gen_dbg_traceTransaction`.
 - `genlayer appeal-bond` is unsupported by the configured chain because the SDK cannot resolve fee-manager and rounds-storage addresses. No appeal was submitted.
@@ -31,4 +31,4 @@ These are source changes only until they are deployed with a byte-matched contra
 - GitHub's Actions API proves GitHub reports a successful run for the exact commit and workflow path. It does not prove independent workflow authorship, test design or test quality. Distinct issuer wallets do not establish organizational independence.
 - The pinned `gl.nondet.web.get` interface does not expose redirect controls or verifiable final origin; redirect-origin claims remain unsupported.
 
-The only completion criteria still outstanding are a finalized successful activation with canonical post-transaction gate reads and a finalized live rejection proof. Current RPC behavior prevents either proof; the exact receipt state is recorded in the matrix and manifest.
+The merged issuer hardening remains undeployed because the minimum cross-contract write on Studionet reproduces a GenVM leader timeout after 600 seconds. Replacement registry/gate deployment and production cutover remain BLOCKED until policy/candidate state can be safely established and the minimal reproduction succeeds. The source and Direct Mode suites pass; a successful live activation and live contract rejection remain unproven. See [the exact reproduction](STUDIONET_CROSS_CONTRACT_ISSUE.md).

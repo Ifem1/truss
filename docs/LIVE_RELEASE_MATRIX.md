@@ -4,8 +4,9 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| Final registry deployed and byte-matched | PASS | Registry `0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f`; [deployment tx](https://explorer-studio.genlayer.com/tx/0xa5e50ed1a21aac590278d63db1f75ee91693fa8586378714fd14cf7de70ed024). |
-| Final gate deployed and byte-matched | PASS | Gate `0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6`; [deployment tx](https://explorer-studio.genlayer.com/tx/0xc7a7a79da6818459709dfa6b450bd5adecd91a5c98263a272b5ef6a3bb16bf6d). |
+| Current production registry (pre-PR #3 hardening) deployed and byte-matched | PASS | Registry `0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f`; [deployment tx](https://explorer-studio.genlayer.com/tx/0xa5e50ed1a21aac590278d63db1f75ee91693fa8586378714fd14cf7de70ed024). |
+| Hardened registry/gate deployment and production cutover | BLOCKED | Source and CI pass, but deployment is held because Studionet reproduces a 600-second on-chain cross-contract `LATEST_FINAL` timeout. A fresh registry needs policy/candidate state rebuilt before safe production cutover. See [issue](STUDIONET_CROSS_CONTRACT_ISSUE.md). |
+| Current production gate (pre-PR #3 hardening) deployed and byte-matched | PASS | Gate `0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6`; [deployment tx](https://explorer-studio.genlayer.com/tx/0xc7a7a79da6818459709dfa6b450bd5adecd91a5c98263a272b5ef6a3bb16bf6d). |
 | Candidate assessment/admission finalized | PASS | Candidate `truss-actions-v012-candidate` has `ADMITTED`; [assessment tx](https://explorer-studio.genlayer.com/tx/0xbdc51067a9133d68406ad170bffd448a5dbe2c050dd848bb603f191263fb29be). Canonical `get_admitted_head("truss-actions-demo-20261009")` returned this candidate. |
 | Gate activation attempt 1 | FAIL | [Transaction](https://explorer-studio.genlayer.com/tx/0x6aa220f4d3710d78b1684f176d10931e6d80cc2383a5b2802289ac50258d2970) finalized `NO_MAJORITY`; leader execution exceeded 600 seconds; 0 votes committed and 0 revealed. Leader node `5528`, model `policy:prd-qwen`. |
 | Gate activation attempt 2 | FAIL | [Transaction](https://explorer-studio.genlayer.com/tx/0x509bb4b5e1e5a1567a560d8d7611fd13d5e3434cfcecaacc02518e84189d9f8f) finalized `NO_MAJORITY`; leader execution exceeded 600 seconds; 0 votes committed and 0 revealed. Leader node `5521`, model `policy:prd-sonnet`. |

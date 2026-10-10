@@ -1,6 +1,6 @@
 # Review Evidence
 
-**Status: contract deployed and byte-matched, synthetic live lifecycle proof complete on Studionet 61999, browser transaction/finality flows verified, and production frontend provenance reconciled.**
+**Historical snapshot (2026-10-07):** This file records earlier contract and production evidence. It does not describe current issuer-hardening deployment status or the later activation timeouts. Current state and the cross-contract blocker are in the [live release matrix](LIVE_RELEASE_MATRIX.md) and [Studionet issue](STUDIONET_CROSS_CONTRACT_ISSUE.md).
 
 ## Verification at frontend source commit `f668c80b7e29602c493e1f505be598a83183373f` (2026-10-07)
 
