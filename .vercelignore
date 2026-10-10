@@ -1,0 +1,10 @@
+.git
+.next
+node_modules
+.pytest_cache
+test-results
+playwright-report
+__pycache__
+.venv
+*.pyc
+*.tsbuildinfo
