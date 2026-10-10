@@ -11,7 +11,7 @@
 - Policy assurance limits say that issuer wallets prove wallet control only, not organizational identity or independence. Unbound legacy test evidence is classified `ADOPTER_ASSERTED_CONTENT`.
 - Direct Mode tests cover arbitrary issuer content, invalid scopes, Actions metadata mismatch, and adversarial registry snapshots consumed by the activation gate.
 
-These are source changes only until deployed with a byte-matched contract. Prior PR #3 CI does not cover this redirect guard; the local suite passes, while GitHub Actions for this branch is pending. The deployed registry at `0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f` predates the issuer and redirect hardening.
+These are source changes only until deployed with a byte-matched contract. The PR #5, branch-push, and merged-master GitHub Actions workflows all passed; their run links are in the [live matrix](LIVE_RELEASE_MATRIX.md). The deployed registry at `0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f` predates the issuer and redirect hardening.
 
 ## Current live state
 
@@ -28,7 +28,7 @@ These are source changes only until deployed with a byte-matched contract. Prior
 - The three activation receipts were inspected: leader node/model pairs were `5528/policy:prd-qwen`, `5521/policy:prd-sonnet`, and `5525/policy:prd-grok`; each reports the same 600-second leader execution timeout.
 - `genlayer trace` cannot retrieve traces because Studionet RPC returns `-32601 Method not found` for `gen_dbg_traceTransaction`.
 - `genlayer appeal-bond` is unsupported by the configured chain because the SDK cannot resolve fee-manager and rounds-storage addresses. No appeal was submitted.
-- Prior issuer hardening passed GitHub Actions in [PR #3](https://github.com/Ifem1/truss/pull/3); the present redirect change has not yet run on GitHub Actions and remains undeployed.
+- The redirect changes passed GitHub Actions on PR #5 and merged master commit `0a37683`; they remain undeployed because live cross-contract execution is blocked.
 - Actions-shaped metadata is issuer-committed content and is not proof of GitHub origin, independent workflow authorship, test design, or test quality. Distinct issuer wallets do not establish organizational independence.
 - The pinned `gl.nondet.web.get` interface does not expose redirect controls or final origin. Content commitments prevent unapproved body substitution but do not prove the remote origin.
 
