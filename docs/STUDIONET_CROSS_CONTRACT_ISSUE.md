@@ -22,6 +22,23 @@ Deployments on chain 61999:
 
 The failed caller write was submitted once. Its receipt is a direct minimal reproduction of the same 600-second leader timeout observed by TRUSS activation calls. We did not submit another activation attempt. The CLI receipt was queried with `genlayer receipt <hash> --status FINALIZED`; an initial short poll showed `PROPOSING` / `NO_MAJORITY`, and later retrieval showed final status 7.
 
+## Low-volume HTTP comparison (2026-10-10 UTC)
+
+After a quiet period, we sent **read-only** `gen_call` requests directly to the same RPC and caller address. The outer `transaction_hash_variant` was `LATEST_FINAL` for both methods; only the probe's *inner* cross-contract state selector differed. Each request was a single raw HTTP POST with no SDK retries. The script is [`scripts/probe-studionet-rpc.mjs`](../scripts/probe-studionet-rpc.mjs); request parameters, timestamps, response headers, body prefixes, and errors are in [`STUDIONET_RPC_LOW_VOLUME_2026-10-10.jsonl`](STUDIONET_RPC_LOW_VOLUME_2026-10-10.jsonl), [`STUDIONET_RPC_RECOVERY_2026-10-10.jsonl`](STUDIONET_RPC_RECOVERY_2026-10-10.jsonl), and [`STUDIONET_RPC_LATEST_FINAL_2026-10-10.jsonl`](STUDIONET_RPC_LATEST_FINAL_2026-10-10.jsonl). One initial log line was interrupted during an HTML body write; its already captured status and headers are retained with an explicit truncation flag.
+
+| UTC request start | Inner selector | Result | Latency | Observations |
+|---|---|---|---:|---|
+| 20:55:09 | Default | HTTP 200 JSON, marker returned | 1.885s | `X-RateLimit-Limit: 30`, `Remaining: 29`, `Reset: 60`; no RPC error. |
+| 20:56:26 | `LATEST_FINAL` | HTTP 524 HTML | ~127s | Cloudflare origin timeout; `Retry-After: 120`; no JSON-RPC error code. The saved raw body was truncated by process interruption. |
+| 21:00:52 | `LATEST_FINAL` | Client transport failure, no HTTP response | 131.261s | Started more than 120s after the prior 524. No status, content type or server error code was available. |
+| 21:05:33 | Default | Client transport failure, no HTTP response | 0.103s | This interval cannot distinguish service availability from client/network trouble. |
+| 21:09:24 | Default | HTTP 200 JSON, marker returned | 1.888s | `X-RateLimit-Limit: 30`, `Remaining: 29`, `Reset: 60`; no RPC error. |
+| 21:12:10 | `LATEST_FINAL` | HTTP 524 HTML | 125.879s | Cloudflare origin timeout; `Retry-After: 120`; no JSON-RPC error code. |
+
+The successful calls show the observed quota was not exhausted; neither 524 had a 429 response or rate-limit error code. Requests were separated by at least 75 seconds, and the final comparison followed a gap longer than 150 seconds. GenLayer's [validator configuration documentation](https://docs.genlayer.com/validators/setup-guide) lists a default `gen_call` limit of 2 requests per second; hosted Studio [is described as rate limited](https://docs.genlayer.com/developers/intelligent-contracts/tooling-setup), but the observed Studionet response advertised 30 requests per 60 seconds. Cloudflare [defines 524](https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-5xx-errors/error-524/) as an origin that accepted the connection but did not respond before its read timeout. Cloudflare may include `Retry-After` on [retryable 5xx responses](https://developers.cloudflare.com/changelog/post/2026-04-27-structured-responses-for-5xx-errors/), so that header alone does not establish rate limiting.
+
+**Conclusion:** simple request-volume throttling is not supported by these measurements. The `LATEST_FINAL` inner view still stalled when calls were far below the observed limit and adjacent default reads succeeded. Shared backend overload or an internal per-operation limit remains possible; HTTP observations cannot locate the stall within state selection, cross-contract dispatch, GenVM, or Studionet hosting. No additional write or deployment was submitted. Preserve finalized-state enforcement and diagnose the hosted path before another activation.
+
 ## Runner versions and commands
 
 - Network: Studionet chain `61999`, RPC `https://studio.genlayer.com/api`.
