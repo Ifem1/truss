@@ -15,7 +15,7 @@
 | Adversarial registry-to-gate Direct Mode tests | PASS (simulated only) | 14 cross-contract-hook cases cover stale head, missing/malformed candidate, missing/mismatched policy, wrong operator, wrong lineage/repository/digest, non-admitted/latest assessment, unavailable registry and replay. These do not establish live cross-contract execution. |
 | Issuer-bound test evidence hardening | PASS (source/tests; not deployed yet) | New source requires an exact repository Actions run API scope and one canonical run URL for issuer-bound `TEST_STATUS`; arbitrary issuer-attested prose cannot satisfy the role. Direct Mode tests verify invalid scope, arbitrary content, run metadata mismatch and assurance labels. |
 | Production frontend cutover | PASS | Vercel production deployment [`dpl_4BmBjXhuVgiBLyffGLD5MFU2Eoqh`](https://vercel.com/ifem1s-projects/truss/dpl_4BmBjXhuVgiBLyffGLD5MFU2Eoqh) is `READY`; [production alias](https://truss-gray.vercel.app) returned HTTP 200 and public bundle contains both final contract addresses. |
-| Current hardening CI | PASS | [PR #3 GitHub Actions `verify`](https://github.com/Ifem1/truss/actions/runs/38045663172/job/114194560455) passed in 4 minutes after the live matrix and manifest were updated. Vercel preview checks also passed. |
+| Current hardening CI | PASS | [PR #3 checks](https://github.com/Ifem1/truss/pull/3/checks): the `verify` job passed in 4m 1s on the final documentation and source commit; Vercel preview checks also passed. |
 
 ## Diagnosis and limits
 
