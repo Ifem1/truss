@@ -99,17 +99,51 @@
         "hash": "0x6aa220f4d3710d78b1684f176d10931e6d80cc2383a5b2802289ac50258d2970",
         "status": "FINALIZED",
         "result": "NO_MAJORITY",
-        "reason": "Leader execution timed out before quorum."
+        "reason": "LEADER_EXEC_TIMEOUT after 600 seconds; 0 committed/revealed votes; node 5528 policy:prd-qwen."
       },
       {
         "hash": "0x509bb4b5e1e5a1567a560d8d7611fd13d5e3434cfcecaacc02518e84189d9f8f",
-        "status": "PROPOSING_AT_LAST_CHECK",
+        "status": "FINALIZED",
         "result": "NO_MAJORITY",
-        "reason": "No leader or validator votes recorded at last check."
+        "reason": "LEADER_EXEC_TIMEOUT after 600 seconds; 0 committed/revealed votes; node 5521 policy:prd-sonnet."
+      },
+      {
+        "hash": "0xfc9ce4ea46e6e2d882994575d5dc11899fa28d06e982e13581067c26e29d51d5",
+        "createdAt": "2026-10-10T09:20:37.362967+00:00",
+        "status": "FINALIZED",
+        "result": "NO_MAJORITY",
+        "reason": "LEADER_EXEC_TIMEOUT after 600 seconds; 0 committed/revealed votes; node 5525 policy:prd-grok."
+      },
+      {
+        "hash": "0xea5f0405d67facb39b25aa23d28222a1e1ba1c11960443f66182a1964525b0e6",
+        "createdAt": "2026-10-10T10:16:42.464166+00:00",
+        "status": "PROPOSING",
+        "result": "NO_MAJORITY_PENDING",
+        "reason": "Invalid-candidate live rejection probe; no leader or validators assigned at last read."
       }
     ],
     "activated": false
   },
-  "productionFrontendUpdated": false,
-  "note": "The frontend at the production alias still uses the historical contract; production cutover awaits finalized activation of this admitted release."
+  "productionFrontendUpdated": true,
+  "productionDeployment": {
+    "project": "ifem1s-projects/truss",
+    "deploymentId": "dpl_4BmBjXhuVgiBLyffGLD5MFU2Eoqh",
+    "deploymentUrl": "https://truss-igo8oe7ma-ifem1s-projects.vercel.app",
+    "alias": "https://truss-gray.vercel.app",
+    "status": "READY",
+    "registryAddress": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
+    "activationGateAddress": "0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
+    "smokeTestHttpStatus": 200,
+    "bundleAddressVerification": true
+  },
+  "liveLifecycle": {
+    "registryHeadRead": "truss-actions-v012-candidate",
+    "candidateStatusRead": "ADMITTED",
+    "gateActiveCandidateRead": "",
+    "gateActivationHistoryRead": [],
+    "activationOutcome": "NO_MAJORITY_LEADER_TIMEOUT",
+    "traceRpcSupported": false,
+    "appealBondCalculationSupported": false
+  },
+  "note": "Production uses the final registry and activation gate. Canonical reads confirm an admitted registry head but an empty gate state. Three activation transactions finalized NO_MAJORITY after distinct leaders timed out at 600 seconds with zero validator votes. A fourth negative-path probe remains PROPOSING without a leader. The gate lifecycle is not proven complete."
 }
