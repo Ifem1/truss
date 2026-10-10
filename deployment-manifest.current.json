@@ -61,7 +61,10 @@
     "key": "truss-actions-v012-policy",
     "digest": "48b758ee118cd93cbbc7d4cdeac05f62ceb7e62eadaf2657bc0d25f2234d44f4",
     "creationTransaction": "0x38927a47be449c996697fc9350f74c92dabf8ce0ea070f23c339169a0bccfaab",
-    "requiredRoles": ["RELEASE_IDENTITY", "TEST_STATUS"],
+    "requiredRoles": [
+      "RELEASE_IDENTITY",
+      "TEST_STATUS"
+    ],
     "evidenceSource": "GitHub REST API and tag-triggered Actions run API",
     "issuerAddress": "0xd6423ae82a975d55c6ceac222827a727325e0459",
     "walletIndependence": "Owner, publisher, and issuer keys are locally controlled; different addresses do not prove organizational independence."
@@ -99,20 +102,27 @@
         "hash": "0x6aa220f4d3710d78b1684f176d10931e6d80cc2383a5b2802289ac50258d2970",
         "status": "FINALIZED",
         "result": "NO_MAJORITY",
-        "reason": "Leader execution timed out before quorum."
+        "reason": "LEADER_EXEC_TIMEOUT after 600 seconds; 0 committed/revealed votes; node 5528 policy:prd-qwen."
       },
       {
         "hash": "0x509bb4b5e1e5a1567a560d8d7611fd13d5e3434cfcecaacc02518e84189d9f8f",
-        "status": "PROPOSING_AT_LAST_CHECK",
+        "status": "FINALIZED",
         "result": "NO_MAJORITY",
-        "reason": "No leader or validator votes recorded at last check."
+        "reason": "LEADER_EXEC_TIMEOUT after 600 seconds; 0 committed/revealed votes; node 5521 policy:prd-sonnet."
       },
       {
         "hash": "0xfc9ce4ea46e6e2d882994575d5dc11899fa28d06e982e13581067c26e29d51d5",
-        "createdAt": "2026-10-10T09:20:37.362967+00:00",
-        "status": "PROPOSING_AT_LAST_CHECK",
+        "createdAt": "2026-10-10T10:20:37.362967+01:00",
+        "status": "FINALIZED",
         "result": "NO_MAJORITY",
-        "reason": "No leader or validator votes recorded; gate remains without an active candidate."
+        "reason": "LEADER_EXEC_TIMEOUT after 600 seconds; 0 committed/revealed votes; node 5525 policy:prd-grok."
+      },
+      {
+        "hash": "0xea5f0405d67facb39b25aa23d28222a1e1ba1c11960443f66182a1964525b0e6",
+        "createdAt": "2026-10-10T11:16:42.464166+01:00",
+        "status": "FINALIZED",
+        "result": "NO_MAJORITY",
+        "reason": "Invalid-candidate live rejection probe finalized as Leader Timeout; GenVM error timeout; leader execution exceeded 600 seconds. The TRUSS rejection path was not reached."
       }
     ],
     "activated": false
@@ -120,8 +130,8 @@
   "productionFrontendUpdated": true,
   "productionDeployment": {
     "project": "ifem1s-projects/truss",
-    "deploymentId": "dpl_DG4gHbFrrknxnPLfsy49NbpUXRZD",
-    "deploymentUrl": "https://truss-jazz5xtwc-ifem1s-projects.vercel.app",
+    "deploymentId": "dpl_4BmBjXhuVgiBLyffGLD5MFU2Eoqh",
+    "deploymentUrl": "https://truss-igo8oe7ma-ifem1s-projects.vercel.app",
     "alias": "https://truss-gray.vercel.app",
     "status": "READY",
     "registryAddress": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
@@ -129,5 +139,38 @@
     "smokeTestHttpStatus": 200,
     "bundleAddressVerification": true
   },
-  "note": "Production now reads the final registry and activation gate. The admitted release is not yet active because Studionet has not assigned a leader or recorded validator votes for the activation transaction."
+  "liveLifecycle": {
+    "registryHeadRead": "truss-actions-v012-candidate",
+    "candidateStatusRead": "ADMITTED",
+    "gateActiveCandidateRead": "",
+    "gateActivationHistoryRead": [],
+    "activationOutcome": "NO_MAJORITY_LEADER_TIMEOUT",
+    "liveInvalidCandidateProbeOutcome": "NO_MAJORITY_LEADER_TIMEOUT_NOT_A_CONTRACT_REJECTION",
+    "canonicalPostTransactionRead": {
+      "source": "https://explorer-studio.genlayer.com/address/0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
+      "method": "get_active_candidate",
+      "result": "",
+      "activationHistoryMethod": "get_activation_history_json",
+      "activationHistoryResult": []
+    },
+    "traceRpcSupported": false,
+    "appealBondCalculationSupported": false,
+    "status": "BLOCKED_MINIMAL_CROSS_CONTRACT_WRITE_TIMEOUT"
+  },
+  "note": "The production frontend uses the deployed registry and gate. The registry head is admitted; the gate state remains empty. A minimal independent on-chain write consuming a cross-contract LATEST_FINAL view finalized NO_MAJORITY with LEADER_EXEC_TIMEOUT after 600 seconds. Live activation and live contract rejection remain unproven; see docs/STUDIONET_CROSS_CONTRACT_ISSUE.md.",
+  "minimalCrossContractProbe": {
+    "status": "BLOCKED_STUDIONET_GENVM_LEADER_TIMEOUT",
+    "sourceAddress": "0xB786E05f18Ed6B03aa03d5a67Cc9Cb9f96Cf7aDC",
+    "sourceDeploymentTransaction": "0x4fcf143ecde1727a0298024ab13d1f8333d0e090ac3fcceb67b1aa24b128eb77",
+    "callerAddress": "0xc3aB10e75f5a13fA47906C7B8B9d81298a64e68a",
+    "callerDeploymentTransaction": "0xd9bf4d57d8532a3887c8530589c4817f94de23a28d834e941d381550e8c6aa52",
+    "basicView": "PASS",
+    "latestFinalView": "RPC_HTML_NOT_JSON",
+    "onChainWriteTransaction": "0xdef55aee14fd4ee26cabfe88fdfd329a29cf871de28f941f20014ff9a830b137",
+    "onChainWrite": "FINALIZED_NO_MAJORITY_LEADER_EXEC_TIMEOUT_600_SECONDS",
+    "canonicalConsumedMarker": "",
+    "hostedGenvmVersion": "not exposed by receipt",
+    "cliVersion": "0.39.1",
+    "localLintGenVmVersion": "v0.3.0-rc7"
+  }
 }

@@ -8,6 +8,7 @@ CONTRACT = "contracts/truss_registry.py"
 BASE = "2026-10-05T10:00:00+00:00"
 IDENTITY = "https://evidence.example.org/release/identity"
 TESTS = "https://evidence.example.org/release/tests"
+ISSUER_TESTS = "https://api.github.com/repos/Ifem1/fixture/actions/runs/12345"
 PROMPT = r"You are evaluating a software release for admission"
 
 
@@ -129,11 +130,11 @@ def test_designated_issuer_commitments_bind_the_sealed_round(direct_vm, direct_d
         "Admission requires exact candidate coordinates and authenticated content commitments from the policy-designated evidence issuer.",
         json.dumps([{"id":"CHECKS_PASS","title":"Checks pass","rule":"The exact committed release fixture reports required checks passed."}]),
         json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
-        json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/identity"],"TEST_STATUS":["evidence.example.org|/release/tests"]}),
+        json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/identity"],"TEST_STATUS":["api.github.com|/repos/Ifem1/fixture/actions/runs/"]}),
         c._test_policy_key, "0x" + "22" * 20,
         json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
     )
-    evidence = json.dumps([{"role":"RELEASE_IDENTITY","url":IDENTITY},{"role":"TEST_STATUS","url":TESTS}])
+    evidence = json.dumps([{"role":"RELEASE_IDENTITY","url":IDENTITY},{"role":"TEST_STATUS","url":ISSUER_TESTS}])
     direct_vm.sender = bytes.fromhex("22" * 20)
     c.open_candidate("issuer-candidate", policy_key, "v1", "a" * 40, "", evidence)
     frozen = json.loads(c.get_candidate_json("issuer-candidate"))["evidence_rounds"][0]
@@ -147,19 +148,28 @@ def test_designated_issuer_commitments_bind_the_sealed_round(direct_vm, direct_d
         c.attest_evidence("issuer-candidate", "RELEASE_IDENTITY", IDENTITY, digest)
     direct_vm.sender = bytes.fromhex("33" * 20)
     c.attest_evidence("issuer-candidate", "RELEASE_IDENTITY", IDENTITY, digest)
-    c.attest_evidence("issuer-candidate", "TEST_STATUS", TESTS, digest)
+    action_body = json.dumps({
+        "id": 12345, "status": "completed", "conclusion": "success", "head_sha": "a"*40,
+        "repository": {"full_name": "Ifem1/fixture"}, "path": ".github/workflows/ci.yml", "event": "push",
+    })
+    c.attest_evidence("issuer-candidate", "TEST_STATUS", ISSUER_TESTS,
+                      hashlib.sha256(action_body.encode()).hexdigest())
     with direct_vm.expect_revert("evidence already attested"):
-        c.attest_evidence("issuer-candidate", "TEST_STATUS", TESTS, digest)
+        c.attest_evidence("issuer-candidate", "TEST_STATUS", ISSUER_TESTS,
+                          hashlib.sha256(action_body.encode()).hexdigest())
     direct_vm.sender = bytes.fromhex("44" * 20)
     assert c.seal_candidate("issuer-candidate") == "SEALED"
     state = json.loads(c.get_candidate_json("issuer-candidate"))
     assert state["evidence_rounds"][0] == frozen
     assert state["sealed_evidence_rounds"] == [1]
     assert len(state["evidence_attestations"]) == 2
-    mock_assessment(direct_vm, body=body)
+    issuer_result = response()
+    issuer_result["evidence_states"][1]["url"] = ISSUER_TESTS
+    mock_assessment(direct_vm, issuer_result, body=body)
     direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/commits/.*", {"status": 200, "body": json.dumps({"sha":"a"*40})})
     direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/ref/tags/v1", {"status": 200, "body": json.dumps({"ref":"refs/tags/v1","object":{"type":"tag","sha":"b"*40}})})
     direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/tags/.*", {"status": 200, "body": json.dumps({"sha":"b"*40,"object":{"type":"commit","sha":"a"*40}})})
+    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/actions/runs/12345", {"status": 200, "body": action_body})
     assert c.assess_candidate("issuer-candidate")["verdict"] == "ADMITTED"
     assert direct_vm.run_validator() is True
     mock_assessment(direct_vm, body=body)
@@ -176,22 +186,90 @@ def test_issuer_digest_mismatch_cannot_support_admission(direct_vm, direct_deplo
         "Admission requires exact candidate coordinates and authenticated content commitments from the policy-designated evidence issuer.",
         json.dumps([{"id":"CHECKS_PASS","title":"Checks pass","rule":"The exact committed release fixture reports required checks passed."}]),
         json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
-        json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/identity"],"TEST_STATUS":["evidence.example.org|/release/tests"]}),
+        json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/identity"],"TEST_STATUS":["api.github.com|/repos/Ifem1/fixture/actions/runs/"]}),
         c._test_policy_key, "0x" + "22" * 20,
         json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
     )
     direct_vm.sender = bytes.fromhex("22" * 20)
     c.open_candidate("wrong-digest", "policy-digest-mismatch", "v1", "a" * 40, "", json.dumps([
-        {"role":"RELEASE_IDENTITY","url":IDENTITY},{"role":"TEST_STATUS","url":TESTS}]))
+        {"role":"RELEASE_IDENTITY","url":IDENTITY},{"role":"TEST_STATUS","url":ISSUER_TESTS}]))
     direct_vm.sender = bytes.fromhex("33" * 20)
     wrong = hashlib.sha256(b"different content").hexdigest()
     c.attest_evidence("wrong-digest", "RELEASE_IDENTITY", IDENTITY, wrong)
-    c.attest_evidence("wrong-digest", "TEST_STATUS", TESTS, wrong)
+    c.attest_evidence("wrong-digest", "TEST_STATUS", ISSUER_TESTS, wrong)
     c.seal_candidate("wrong-digest")
     mock_assessment(direct_vm)
     result = c.assess_candidate("wrong-digest")
     assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
     assert c.get_admitted_head(c._test_lineage_key) == ""
+
+
+def test_issuer_bound_test_status_rejects_arbitrary_attested_content(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    policy = "issuer-test-status-only"
+    c.create_policy_with_issuers(
+        policy, c._test_lineage_key, "TRUSS fixture", "Ifem1", "fixture",
+        "This public fixture tests that arbitrary issuer content cannot assert independently verified CI.",
+        "Admission requires a canonical GitHub Actions run record for the exact candidate commit and workflow metadata.",
+        json.dumps([{"id":"CHECKS_PASS","title":"Checks pass","rule":"The canonical Actions run must report completion and success for this exact commit."}]),
+        json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
+        json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/identity"],"TEST_STATUS":["api.github.com|/repos/Ifem1/fixture/actions/runs/"]}),
+        c._test_policy_key, "0x" + "22" * 20,
+        json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
+    )
+    direct_vm.sender = bytes.fromhex("22" * 20)
+    with direct_vm.expect_revert("outside the role's allowed scope"):
+        c.open_candidate("issuer-arbitrary-test", policy, "v2", "b" * 40, "", json.dumps([
+            {"role":"RELEASE_IDENTITY", "url":IDENTITY},
+            {"role":"TEST_STATUS", "url":TESTS},
+        ]))
+    with direct_vm.expect_revert("exactly one canonical GitHub Actions run"):
+        c.open_candidate("issuer-multiple-tests", policy, "v2", "b" * 40, "", json.dumps([
+            {"role":"RELEASE_IDENTITY", "url":IDENTITY},
+            {"role":"TEST_STATUS", "url":ISSUER_TESTS},
+            {"role":"TEST_STATUS", "url":"https://api.github.com/repos/Ifem1/fixture/actions/runs/12346"},
+        ]))
+
+    # A canonical Actions URL whose bytes are merely issuer-attested prose is
+    # still not a successful GitHub run record, even when the model says pass.
+    arbitrary_run_body = "The issuer claims all tests passed; this is not Actions JSON."
+    c.open_candidate("issuer-content-not-run", policy, "v2", "b" * 40, "", json.dumps([
+        {"role":"RELEASE_IDENTITY", "url":IDENTITY},
+        {"role":"TEST_STATUS", "url":ISSUER_TESTS},
+    ]))
+    direct_vm.sender = bytes.fromhex("33" * 20)
+    c.attest_evidence("issuer-content-not-run", "RELEASE_IDENTITY", IDENTITY,
+                      hashlib.sha256(b"Public synthetic release record and test result.").hexdigest())
+    c.attest_evidence("issuer-content-not-run", "TEST_STATUS", ISSUER_TESTS,
+                      hashlib.sha256(arbitrary_run_body.encode()).hexdigest())
+    direct_vm.sender = bytes.fromhex("44" * 20)
+    c.seal_candidate("issuer-content-not-run")
+    mock_data = response()
+    mock_data["evidence_states"][1]["url"] = ISSUER_TESTS
+    mock_assessment(direct_vm, mock_data, body="Public synthetic release record and test result.")
+    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/commits/.*", {"status":200,"body":json.dumps({"sha":"b"*40})})
+    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/ref/tags/v2", {"status":200,"body":json.dumps({"ref":"refs/tags/v2","object":{"type":"commit","sha":"b"*40}})})
+    direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/actions/runs/12345", {"status":200,"body":arbitrary_run_body})
+    rejected = c.assess_candidate("issuer-content-not-run")
+    assert rejected["verdict"] == "INSUFFICIENT_EVIDENCE"
+    assert rejected["identity_match"] == "UNVERIFIED"
+    assert rejected["provenance_checks"]["test_status_assurance"] == "NOT_VERIFIED"
+    assert c.get_admitted_head(c._test_lineage_key) == ""
+
+
+def test_issuer_bound_policy_rejects_non_actions_test_scope(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    with direct_vm.expect_revert("TEST_STATUS scope must be the repository GitHub Actions API"):
+        c.create_policy_with_issuers(
+            "issuer-arbitrary-scope", c._test_lineage_key, "TRUSS fixture", "Ifem1", "fixture",
+            "This public fixture tests source scope requirements for issuer-bound test claims.",
+            "Admission requires test status to use the canonical GitHub Actions run API for the repository.",
+            json.dumps([{"id":"CHECKS_PASS","title":"Checks pass","rule":"The exact Actions run metadata must report successful checks."}]),
+            json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
+            json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/identity"],"TEST_STATUS":["evidence.example.org|/release/tests"]}),
+            c._test_policy_key, "0x" + "22" * 20,
+            json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
+        )
 
 
 def test_github_requests_use_supported_headers_and_actions_run_is_commit_bound(direct_vm, direct_deploy):
