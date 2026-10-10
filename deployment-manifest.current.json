@@ -117,9 +117,9 @@
       {
         "hash": "0xea5f0405d67facb39b25aa23d28222a1e1ba1c11960443f66182a1964525b0e6",
         "createdAt": "2026-10-10T10:16:42.464166+00:00",
-        "status": "PROPOSING",
-        "result": "NO_MAJORITY_PENDING",
-        "reason": "Invalid-candidate live rejection probe; no leader or validators assigned at last read."
+        "status": "FINALIZED",
+        "result": "NO_MAJORITY",
+        "reason": "Invalid-candidate live rejection probe finalized as Leader Timeout; GenVM error timeout; leader execution exceeded 600 seconds. The TRUSS rejection path was not reached."
       }
     ],
     "activated": false
@@ -142,8 +142,16 @@
     "gateActiveCandidateRead": "",
     "gateActivationHistoryRead": [],
     "activationOutcome": "NO_MAJORITY_LEADER_TIMEOUT",
+    "liveInvalidCandidateProbeOutcome": "NO_MAJORITY_LEADER_TIMEOUT_NOT_A_CONTRACT_REJECTION",
+    "canonicalPostTransactionRead": {
+      "source": "https://explorer-studio.genlayer.com/address/0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
+      "method": "get_active_candidate",
+      "result": "",
+      "activationHistoryMethod": "get_activation_history_json",
+      "activationHistoryResult": []
+    },
     "traceRpcSupported": false,
     "appealBondCalculationSupported": false
   },
-  "note": "Production uses the final registry and activation gate. Canonical reads confirm an admitted registry head but an empty gate state. Three activation transactions finalized NO_MAJORITY after distinct leaders timed out at 600 seconds with zero validator votes. A fourth negative-path probe remains PROPOSING without a leader. The gate lifecycle is not proven complete."
+  "note": "Production uses the deployed registry and activation gate. Canonical reads confirm an admitted registry head but an empty gate state. Three activation transactions and the invalid-candidate probe finalized NO_MAJORITY after leader execution timed out at 600 seconds. The negative-path call did not reach TRUSS contract rejection. The successful gate lifecycle is not proven complete."
 }
