@@ -56,6 +56,7 @@ def setup(vm, deploy):
         json.dumps({"RELEASE_IDENTITY": ["evidence.example.org|/release/identity"], "TEST_STATUS": ["evidence.example.org|/release/tests"]}),
         "",
     )
+    c.configure_activation_gate(c._test_policy_key, "0x" + "aa" * 20)
     return c
 
 
@@ -69,6 +70,52 @@ def open_candidate(c, key="candidate-001", commit="a" * 40, identity_url=IDENTIT
 def assess(vm, c, data=None, **kwargs):
     mock_assessment(vm, data, **kwargs)
     return c.assess_candidate("candidate-001")
+
+
+def admit_issuer_candidate(vm, c, policy_key="activation-policy", candidate_key="activation-candidate",
+                           release_label="v9.1.0", commit="a" * 40):
+    tag_url = f"https://api.github.com/repos/Ifem1/fixture/git/ref/tags/{release_label}"
+    run_url = ISSUER_TESTS
+    c.create_policy_with_issuers(
+        policy_key, c._test_lineage_key, "TRUSS fixture", "Ifem1", "fixture",
+        "This synthetic fixture exercises finalized admission delivery through a frozen gate.",
+        "Admission requires canonical repository tag and Actions run metadata bound to this exact commit.",
+        json.dumps([{"id":"CHECKS_PASS","title":"Checks pass","rule":"The canonical Actions run must report success for this exact candidate commit."}]),
+        json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
+        json.dumps({"RELEASE_IDENTITY":["api.github.com|/repos/Ifem1/fixture/git/ref/tags/"],
+                    "TEST_STATUS":["api.github.com|/repos/Ifem1/fixture/actions/runs/"]}),
+        c._test_policy_key, "0x" + "22" * 20,
+        json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
+    )
+    c.configure_activation_gate(policy_key, "0x" + "aa" * 20)
+    evidence = json.dumps([{"role":"RELEASE_IDENTITY","url":tag_url},
+                           {"role":"TEST_STATUS","url":run_url}])
+    vm.sender = bytes.fromhex("22" * 20)
+    c.open_candidate(candidate_key, policy_key, release_label, commit, "", evidence)
+    tag_body = json.dumps({"ref":f"refs/tags/{release_label}","object":{"type":"commit","sha":commit}})
+    actions_body = json.dumps({"id":12345,"status":"completed","conclusion":"success","head_sha":commit,
+                               "repository":{"full_name":"Ifem1/fixture"},
+                               "path":".github/workflows/ci.yml","event":"push"})
+    vm.sender = bytes.fromhex("33" * 20)
+    c.attest_evidence(candidate_key, "RELEASE_IDENTITY", tag_url, hashlib.sha256(tag_body.encode()).hexdigest())
+    c.attest_evidence(candidate_key, "TEST_STATUS", run_url, hashlib.sha256(actions_body.encode()).hexdigest())
+    vm.sender = bytes.fromhex("44" * 20)
+    c.seal_candidate(candidate_key)
+    result = response()
+    result["evidence_states"] = [
+        {"url":tag_url,"state":"SUPPORTS","finding":"Canonical release tag fixture."},
+        {"url":run_url,"state":"SUPPORTS","finding":"Issuer-committed Actions run fixture."},
+    ]
+    vm.clear_mocks()
+    vm.mock_llm(PROMPT, json.dumps(result))
+    vm.mock_llm(r"Two assessments already match on all decision fields", json.dumps({"equivalent":True}))
+    vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/ref/tags/.*", {"status":200,"body":tag_body})
+    vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/actions/runs/12345", {"status":200,"body":actions_body})
+    vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/commits/.*", {"status":200,"body":json.dumps({"sha":commit})})
+    vm.sender = bytes.fromhex("44" * 20)
+    assessment = c.assess_candidate(candidate_key)
+    assert assessment["verdict"] == "ADMITTED"
+    return assessment
 
 
 def test_first_policy_freezes_digest_and_claims_lineage(direct_vm, direct_deploy):
@@ -135,6 +182,7 @@ def test_designated_issuer_commitments_bind_the_sealed_round(direct_vm, direct_d
         c._test_policy_key, "0x" + "22" * 20,
         json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
     )
+    c.configure_activation_gate(policy_key, "0x" + "aa" * 20)
     evidence = json.dumps([{"role":"RELEASE_IDENTITY","url":ref_url},{"role":"TEST_STATUS","url":ISSUER_TESTS}])
     direct_vm.sender = bytes.fromhex("22" * 20)
     c.open_candidate("issuer-candidate", policy_key, "v1", "a" * 40, "", evidence)
@@ -191,6 +239,7 @@ def test_issuer_digest_mismatch_cannot_support_admission(direct_vm, direct_deplo
         c._test_policy_key, "0x" + "22" * 20,
         json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
     )
+    c.configure_activation_gate("policy-digest-mismatch", "0x" + "aa" * 20)
     direct_vm.sender = bytes.fromhex("22" * 20)
     c.open_candidate("wrong-digest", "policy-digest-mismatch", "v1", "a" * 40, "", json.dumps([
         {"role":"RELEASE_IDENTITY","url":IDENTITY},{"role":"TEST_STATUS","url":ISSUER_TESTS}]))
@@ -247,6 +296,7 @@ def test_issuer_bound_test_status_rejects_arbitrary_attested_content(direct_vm, 
         c._test_policy_key, "0x" + "22" * 20,
         json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
     )
+    c.configure_activation_gate(policy, "0x" + "aa" * 20)
     direct_vm.sender = bytes.fromhex("22" * 20)
     with direct_vm.expect_revert("outside the role's allowed scope"):
         c.open_candidate("issuer-arbitrary-test", policy, "v2", "b" * 40, "", json.dumps([
@@ -589,3 +639,68 @@ def test_validator_preserves_fail_closed_uncommitted_evidence(direct_vm, direct_
     direct_vm.mock_llm(r"Two assessments already match on all decision fields", json.dumps({"equivalent": True}))
     assert direct_vm.run_validator() is False
     assert c.get_admitted_head(c._test_lineage_key) == ""
+
+
+def test_activation_gate_binding_is_owner_configured_and_frozen(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    policy = json.loads(c.get_policy_json(c._test_policy_key))
+    direct_vm.sender = bytes.fromhex("22" * 20)
+    with direct_vm.expect_revert("only lineage owner"):
+        c.configure_activation_gate(c._test_policy_key, "0x" + "bb" * 20)
+    direct_vm.sender = bytes.fromhex("11" * 20)
+    with direct_vm.expect_revert("already frozen"):
+        c.configure_activation_gate(c._test_policy_key, "0x" + "bb" * 20)
+    assert c.activation_gate_by_policy.get(c._test_policy_key) == "0x" + "aa" * 20
+    assert c.activation_gate_policy_digest_by_policy.get(c._test_policy_key) == policy["policy_digest"]
+
+
+def test_pending_activation_blocks_new_admission_and_requires_finalized_gate_ack(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    policy_key = "activation-policy"
+    candidate_key = "activation-candidate"
+    result = admit_issuer_candidate(direct_vm, c, policy_key, candidate_key)
+    assert result["verdict"] == "ADMITTED"
+    pending = json.loads(c.get_pending_activation_json(c._test_lineage_key))
+    assert pending["sequence"] == 1
+    assert pending["candidate_key"] == candidate_key
+    assert pending["gate_address"] == "0x" + "aa" * 20
+    assert c.get_admitted_head(c._test_lineage_key) == candidate_key
+
+    evidence = json.dumps([{"role":"RELEASE_IDENTITY","url":"https://api.github.com/repos/Ifem1/fixture/git/ref/tags/v9.2.0"},
+                           {"role":"TEST_STATUS","url":ISSUER_TESTS}])
+    direct_vm.sender = bytes.fromhex("22" * 20)
+    c.open_candidate("candidate-002", policy_key, "v9.2.0", "b" * 40, candidate_key, evidence)
+    with direct_vm.expect_revert("previous activation notification is not acknowledged"):
+        c.assess_candidate("candidate-002")
+    assert c.get_admitted_head(c._test_lineage_key) == candidate_key
+
+    direct_vm.sender = bytes.fromhex("22" * 20)
+    with direct_vm.expect_revert("only configured activation gate"):
+        c.acknowledge_activation(c._test_lineage_key, 1, candidate_key,
+                                 pending["policy_digest"], pending["assessment_digest"])
+    direct_vm.sender = bytes.fromhex("aa" * 20)
+    with direct_vm.expect_revert("does not match pending admission"):
+        c.acknowledge_activation(c._test_lineage_key, 1, "candidate-002",
+                                 pending["policy_digest"], pending["assessment_digest"])
+    assert json.loads(c.get_pending_activation_json(c._test_lineage_key)) == pending
+
+    assert c.acknowledge_activation(c._test_lineage_key, 1, candidate_key,
+                                    pending["policy_digest"], pending["assessment_digest"]) == "ACKNOWLEDGED"
+    assert json.loads(c.get_pending_activation_json(c._test_lineage_key)) == {}
+    history = json.loads(c.get_activation_ack_history_json(c._test_lineage_key))
+    assert len(history) == 1 and history[0]["sequence"] == 1
+    assert c.acknowledge_activation(c._test_lineage_key, 1, candidate_key,
+                                    pending["policy_digest"], pending["assessment_digest"]) == "DUPLICATE_ACKNOWLEDGMENT"
+
+
+def test_delivery_retry_is_bounded_and_keeps_sequence_and_payload(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    admit_issuer_candidate(direct_vm, c)
+    for retry in range(1, 4):
+        assert c.retry_activation_delivery(c._test_lineage_key) == "1"
+        pending = json.loads(c.get_pending_activation_json(c._test_lineage_key))
+        assert pending["delivery_retries"] == retry
+        assert pending["candidate_key"] == "activation-candidate"
+        assert pending["sequence"] == 1
+    with direct_vm.expect_revert("retry limit exhausted"):
+        c.retry_activation_delivery(c._test_lineage_key)

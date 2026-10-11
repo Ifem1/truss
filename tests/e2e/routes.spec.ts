@@ -77,6 +77,9 @@ async function installContractRpc(page: Page, initialStatus: "ACCEPTED" | "FINAL
       let value = "";
       if (method === "get_policy_json") value = JSON.stringify(fixturePolicy);
       if (method === "get_admitted_head") value = candidateStatus === "ADMITTED" ? "candidate-browser-e2e" : "";
+      if (method === "get_pending_activation_json") value = candidateStatus === "ADMITTED" && activeRelease !== "candidate-browser-e2e" ? JSON.stringify({ sequence: 1, candidate_key: "candidate-browser-e2e", policy_digest: fixturePolicy.policy_digest, commit_sha: "c".repeat(40), predecessor_candidate_key: "", assessment_digest: "fixture-assessment", repository_owner: "Ifem1", repository_name: "truss", delivery_retries: 0 }) : "{}";
+      if (method === "get_pending_admission_json") value = candidateStatus === "ADMITTED" && activeRelease !== "candidate-browser-e2e" ? JSON.stringify({ sequence: 1, candidate_key: "candidate-browser-e2e", policy_digest: fixturePolicy.policy_digest, commit_sha: "c".repeat(40), predecessor_candidate_key: "", assessment_digest: "fixture-assessment", repository_owner: "Ifem1", repository_name: "truss" }) : "{}";
+      if (method === "get_pending_acknowledgment_json") value = "{}";
       if (method === "get_configuration_json") value = JSON.stringify({ registry_address: contractAddress, operator: walletAddress, lineage_key: fixturePolicy.lineage_key, policy_digest: fixturePolicy.policy_digest, repository_owner: "Ifem1", repository_name: "truss" });
       if (method === "get_active_candidate") value = activeRelease;
       if (method === "get_candidate_json" && args[0] === "candidate-browser-e2e") value = JSON.stringify({
@@ -104,6 +107,8 @@ async function installContractRpc(page: Page, initialStatus: "ACCEPTED" | "FINAL
 async function fillCandidateForm(page: Page) {
   await page.goto("/release/new?policy=policy-e2e");
   await page.getByRole("button", { name: /connect wallet/i }).click();
+  await page.getByLabel("Policy key").fill("policy-e2e");
+  await expect(page.getByLabel("RELEASE IDENTITY")).toBeVisible();
   await page.getByLabel("Candidate key").fill("candidate-browser-e2e");
   await page.getByLabel("Release label").fill("0.1.0");
   await page.getByLabel("Exact commit SHA").fill("c".repeat(40));
@@ -224,7 +229,7 @@ test("a submitted candidate remains nonfinal until FINALIZED, then reloads autho
   await expect(page.getByText("OPEN", { exact: true })).toBeVisible();
 });
 
-test("a nonowner wallet can initiate assessment without editing the frozen dossier", async ({ page }) => {
+test("a nonowner wallet can request assessment and the dossier rereads finalized state", async ({ page }) => {
   await installWallet(page);
   const rpc = await installContractRpc(page, "FINALIZED", "SUCCESS", "0x2222222222222222222222222222222222222222");
   await page.goto("/release/candidate-browser-e2e");
@@ -247,7 +252,7 @@ test("activation waits for finality and rereads consumer state", async ({ page }
   await expect(page.getByText(/current activated candidate:.*none/i)).toBeVisible();
   rpc.setActiveRelease("candidate-browser-e2e");
   rpc.setStatus("FINALIZED");
-  await expect(page.getByText("FINALIZED · authoritative contract state reloaded")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText("FINALIZED · activation and registry acknowledgment confirmed")).toBeVisible({ timeout: 15000 });
   await expect(page.getByText(/current activated candidate:.*candidate-browser-e2e/i)).toBeVisible();
   await expect(page.getByRole("button", { name: /activate admitted release/i })).toBeDisabled();
 });

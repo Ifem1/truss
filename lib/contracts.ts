@@ -21,7 +21,14 @@ export function abandonCandidate(a:`0x${string}`,key:string){ return writeContra
 export function attestEvidence(a:`0x${string}`,key:string,role:string,url:string,digest:string){ return writeContract(a,CONTRACT_ADDRESS,"attest_evidence",[key,role,url,digest]); }
 export function sealCandidate(a:`0x${string}`,key:string){ return writeContract(a,CONTRACT_ADDRESS,"seal_candidate",[key]); }
 export type ActivationGateConfig = {registry_address:string;operator:string;lineage_key:string;policy_digest:string;repository_owner:string;repository_name:string};
+export type ActivationAdmission = {sequence:number;candidate_key:string;policy_digest:string;commit_sha:string;predecessor_candidate_key:string;assessment_digest:string;repository_owner:string;repository_name:string;delivery_retries?:number};
+export type ActivationAcknowledgment = {sequence:number;candidate_key:string;policy_digest:string;assessment_digest:string;retry_count?:number};
 export async function getActivationGateConfig(){ return parseJson<ActivationGateConfig>(await readContract<string>(ACTIVATION_GATE_ADDRESS,"get_configuration_json")); }
 export function getActiveRelease(){ return readContract<string>(ACTIVATION_GATE_ADDRESS,"get_active_candidate"); }
-export async function getActivationHistory(){ return parseJson<Array<{candidate_key:string;policy_digest:string;commit_sha:string;assessment_digest:string}>>(await readContract<string>(ACTIVATION_GATE_ADDRESS,"get_activation_history_json"))??[]; }
+export async function getPendingActivation(lineage:string){ const value=parseJson<ActivationAdmission>(await readContract<string>(CONTRACT_ADDRESS,"get_pending_activation_json",[lineage])); return value?.candidate_key ? value : null; }
+export async function getPendingGateAdmission(){ const value=parseJson<ActivationAdmission>(await readContract<string>(ACTIVATION_GATE_ADDRESS,"get_pending_admission_json")); return value?.candidate_key ? value : null; }
+export async function getPendingGateAcknowledgment(){ const value=parseJson<ActivationAcknowledgment>(await readContract<string>(ACTIVATION_GATE_ADDRESS,"get_pending_acknowledgment_json")); return value?.candidate_key ? value : null; }
+export async function getActivationHistory(){ return parseJson<Array<{sequence:number;candidate_key:string;policy_digest:string;commit_sha:string;assessment_digest:string;predecessor_candidate_key:string}>>(await readContract<string>(ACTIVATION_GATE_ADDRESS,"get_activation_history_json"))??[]; }
 export function activateRelease(a:`0x${string}`,key:string){ return writeContract(a,ACTIVATION_GATE_ADDRESS,"activate_release",[key]); }
+export function retryActivationDelivery(a:`0x${string}`,lineage:string){ return writeContract(a,CONTRACT_ADDRESS,"retry_activation_delivery",[lineage]); }
+export function retryActivationAcknowledgment(a:`0x${string}`){ return writeContract(a,ACTIVATION_GATE_ADDRESS,"retry_activation_acknowledgment"); }

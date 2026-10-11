@@ -72,6 +72,20 @@ genlayer receipt <TX_HASH> --status FINALIZED --rpc https://studio.genlayer.com/
 genlayer call <CALLER> get_consumed_marker --rpc https://studio.genlayer.com/api
 ```
 
-## TRUSS impact
+## TRUSS impact (2026-10-10 snapshot)
 
-The production registry and gate remain configured in the frontend, and their deployed addresses are unchanged. The registry's admitted head is readable, while the gate's canonical active candidate and activation history remain empty. The requested successful activation and live invalid-candidate rejection cannot be demonstrated while the isolated on-chain cross-contract read/write path times out. The prior activation and invalid-candidate calls are not contract-level rejection evidence. Live enforcement is **BLOCKED** pending a Studionet/GenVM fix and a rerun of this minimal reproduction.
+At that snapshot, the production registry and gate remained configured in the frontend and their deployed addresses were unchanged. The registry's admitted head was readable, while the gate's canonical active candidate and activation history remained empty. The requested successful activation and live invalid-candidate rejection could not be demonstrated through the isolated cross-contract read/write path. The prior activation and invalid-candidate calls were not contract-level rejection evidence. The subsequent finalized-message result below supplies a viable alternative mechanism; it does not itself prove TRUSS live enforcement.
+
+## Finalized-message primitive (2026-10-11)
+
+The later TRUSS design uses finalized messages rather than cross-contract `LATEST_FINAL` reads. A minimal authenticated parent-to-child test succeeded on Studionet 61999:
+
+| Item | Evidence |
+|---|---|
+| Sender source | [`contracts/finalized_message_probe_sender.py`](../contracts/finalized_message_probe_sender.py), SHA-256 `0f81c7c45470c247fc54d756764c8b3873baa62ed252f1cc24f88f79d5da60f2`; address `0x38E747876E149b28B082329daAca084601b79710`; [deployment](https://explorer-studio.genlayer.com/tx/0xbe33d362d41422ae7e38aab46e8b18745e37e7e6cd18ea6d6734c6d5200e1b). |
+| Receiver source | [`contracts/finalized_message_probe_receiver.py`](../contracts/finalized_message_probe_receiver.py), SHA-256 `05e90d888b39f40be1b2c1ab0385468867c27f34ff36a30c4c23a58a61b2d579`; address `0xAEc8E67a91652F48B80364b80B6F9BdFB132a0b7`; [deployment](https://explorer-studio.genlayer.com/tx/0x7f7d12db912f25e0a5e560e36a27853e7ed1c5539de11103c0664356ae2824ee). The constructor freezes the only accepted sender. |
+| Parent message write | [Transaction](https://explorer-studio.genlayer.com/tx/0x14c144093c3ba15c1f7c1d59d659c18016ee29cdaa041ffd16d5db8f7d1d403a), `FINALIZED` / `MAJORITY_AGREE`; emitted with `on="finalized"`. |
+| Triggered child | [Transaction](https://explorer-studio.genlayer.com/tx/0x6dcc26a903092d9291133b445af4459ebd340e687b8f70ae9cd0c9844ef88c77), `FINALIZED` / `MAJORITY_AGREE`, `execution_result: SUCCESS`, `triggered_on: finalized`; authenticated `gl.message.sender_address` equals the configured parent. |
+| Canonical child storage | `get_received_state()` returned nonce `1`, payload `TRUSS-FINALIZED-MESSAGE-20261011`, and `sender == expected_sender == 0x38E747876E149b28B082329daAca084601b79710`. |
+
+This result isolates the earlier timeout to the `LATEST_FINAL` read path: finalized message delivery and child execution work on the same hosted network. It does not identify the exact internal defect in state selection, nested dispatch, or the hosted backend. It also proves only the message primitive; the new TRUSS registry/gate lifecycle requires its own deployment, finalized admission, acknowledgment, activation, negative-path, and canonical-state proofs. The project therefore proceeds with message-based delivery while preserving the old `LATEST_FINAL` finding in [GenLayer issue #60](https://github.com/genlayerlabs/genvm-manager/issues/60).

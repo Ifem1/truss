@@ -55,9 +55,91 @@ class TrussRegistry(gl.Contract):
     coordinate_to_candidate: TreeMap[str, str]
     admitted_head_by_lineage: TreeMap[str, str]
     admitted_history_by_lineage: TreeMap[str, str]
+    activation_gate_by_policy: TreeMap[str, str]
+    activation_gate_policy_digest_by_policy: TreeMap[str, str]
+    activation_sequence_by_lineage: TreeMap[str, u256]
+    pending_activation_by_lineage: TreeMap[str, str]
+    last_activation_ack_by_lineage: TreeMap[str, str]
+    activation_ack_history_by_lineage: TreeMap[str, str]
 
     def __init__(self):
         pass
+
+    @gl.public.write
+    def configure_activation_gate(self, policy_key: str, gate_address: Address) -> str:
+        policy = self._get_policy(policy_key)
+        lineage = str(policy.get("lineage_key", ""))
+        sender = _address(gl.message.sender_address)
+        if sender != str(policy.get("owner", "")):
+            raise gl.vm.UserError("only lineage owner may configure activation gate")
+        if self.active_policy_by_lineage.get(lineage, "") != policy_key:
+            raise gl.vm.UserError("activation gate requires the active policy")
+        if self.activation_gate_by_policy.get(policy_key, ""):
+            raise gl.vm.UserError("activation gate is already frozen for this policy")
+        address = _address(gate_address)
+        if address == "0x" + "00" * 20:
+            raise gl.vm.UserError("activation gate address must be nonzero")
+        digest = str(policy.get("policy_digest", ""))
+        self.activation_gate_by_policy[policy_key] = address
+        self.activation_gate_policy_digest_by_policy[policy_key] = digest
+        return digest
+
+    @gl.public.write
+    def retry_activation_delivery(self, lineage_key: str) -> str:
+        pending_raw = self.pending_activation_by_lineage.get(lineage_key, "")
+        if not pending_raw:
+            raise gl.vm.UserError("no activation delivery is pending")
+        pending = json.loads(pending_raw)
+        retries = int(pending.get("delivery_retries", 0))
+        if retries >= 3:
+            raise gl.vm.UserError("activation delivery retry limit exhausted")
+        pending["delivery_retries"] = retries + 1
+        self.pending_activation_by_lineage[lineage_key] = json.dumps(pending, sort_keys=True)
+        gate = gl.get_contract_at(Address(str(pending["gate_address"])))
+        gate.emit(on="finalized").receive_admission(
+            lineage_key, u256(int(pending["sequence"])), pending["candidate_key"],
+            pending["policy_digest"], pending["commit_sha"],
+            pending["predecessor_candidate_key"], pending["assessment_digest"],
+            pending["repository_owner"], pending["repository_name"])
+        return str(pending["sequence"])
+
+    @gl.public.write
+    def acknowledge_activation(self, lineage_key: str, sequence: u256, candidate_key: str,
+                               policy_digest: str, assessment_digest: str) -> str:
+        pending_raw = self.pending_activation_by_lineage.get(lineage_key, "")
+        sender = _address(gl.message.sender_address)
+        if pending_raw:
+            pending = json.loads(pending_raw)
+            if sender != str(pending.get("gate_address", "")):
+                raise gl.vm.UserError("only configured activation gate may acknowledge")
+            if (int(sequence) != int(pending.get("sequence", 0))
+                    or candidate_key != pending.get("candidate_key")
+                    or policy_digest != pending.get("policy_digest")
+                    or assessment_digest != pending.get("assessment_digest")
+                    or self.admitted_head_by_lineage.get(lineage_key, "") != candidate_key):
+                raise gl.vm.UserError("activation acknowledgment does not match pending admission")
+            acknowledgment = {
+                "sequence": int(sequence), "candidate_key": candidate_key,
+                "policy_digest": policy_digest, "assessment_digest": assessment_digest,
+                "gate_address": sender, "acknowledged_at": _now(),
+            }
+            self.pending_activation_by_lineage[lineage_key] = ""
+            self.last_activation_ack_by_lineage[lineage_key] = json.dumps(acknowledgment, sort_keys=True)
+            history = json.loads(self.activation_ack_history_by_lineage.get(lineage_key, "[]"))
+            history.append(acknowledgment)
+            self.activation_ack_history_by_lineage[lineage_key] = json.dumps(history, sort_keys=True)
+            return "ACKNOWLEDGED"
+
+        last = self.last_activation_ack_by_lineage.get(lineage_key, "")
+        if last:
+            acknowledgment = json.loads(last)
+            if (sender == str(acknowledgment.get("gate_address", ""))
+                    and int(sequence) == int(acknowledgment.get("sequence", 0))
+                    and candidate_key == acknowledgment.get("candidate_key")
+                    and policy_digest == acknowledgment.get("policy_digest")
+                    and assessment_digest == acknowledgment.get("assessment_digest")):
+                return "DUPLICATE_ACKNOWLEDGMENT"
+        raise gl.vm.UserError("no matching activation acknowledgment is pending")
 
     def _require_key(self, value: str, label: str) -> None:
         if not re.fullmatch(r"[A-Za-z0-9._:-]{3,96}", str(value or "")):
@@ -533,7 +615,7 @@ class TrussRegistry(gl.Contract):
                                     "content_digest": content_digest, "error": "issuer commitment mismatch"})
                     continue
                 body = body_bytes.decode("utf-8", errors="replace")
-                excerpt = body if len(body) <= MAX_PROMPT_EXCERPT else body[:3500] + "\r\n[...bounded middle omitted...]\r\n" + body[-3500:]
+                excerpt = body if len(body) <= MAX_PROMPT_EXCERPT else body[:3500] + "\n[...bounded middle omitted...]\n" + body[-3500:]
                 fetched.append({"role": role, "url": url, "http_status": status, "content": excerpt,
                                 "content_digest": content_digest, "error": ""})
             except Exception as exc:
@@ -782,6 +864,14 @@ Every frozen criterion id and every frozen evidence URL must appear exactly once
         policy = self._get_policy(str(candidate.get("policy_key", "")))
         if str(policy.get("policy_digest", "")) != str(candidate.get("policy_digest", "")):
             raise gl.vm.UserError("frozen policy digest mismatch")
+        if self.pending_activation_by_lineage.get(str(candidate.get("lineage_key", "")), ""):
+            raise gl.vm.UserError("previous activation notification is not acknowledged")
+        policy_key = str(candidate.get("policy_key", ""))
+        activation_gate = self.activation_gate_by_policy.get(policy_key, "")
+        if (not activation_gate
+                or self.activation_gate_policy_digest_by_policy.get(policy_key, "")
+                != str(policy.get("policy_digest", ""))):
+            raise gl.vm.UserError("frozen activation gate is not configured for this policy")
         if len(rounds) not in candidate.get("sealed_evidence_rounds", []):
             raise gl.vm.UserError("current evidence round is not sealed")
         lineage = str(candidate.get("lineage_key", ""))
@@ -863,6 +953,24 @@ Every frozen criterion id and every frozen evidence URL must appear exactly once
             history = json.loads(self.admitted_history_by_lineage.get(lineage, "[]"))
             history.append({"candidate_key":candidate_key,"release_label":candidate.get("release_label",""),"commit_sha":candidate.get("commit_sha",""),"policy_key":candidate.get("policy_key",""),"assessment_digest":assessment.get("assessment_digest",""),"admitted_at":_now()})
             self.admitted_history_by_lineage[lineage] = json.dumps(history, sort_keys=True)
+            sequence = self.activation_sequence_by_lineage.get(lineage, u256(0)) + u256(1)
+            self.activation_sequence_by_lineage[lineage] = sequence
+            pending = {
+                "sequence": int(sequence), "candidate_key": candidate_key,
+                "policy_key": policy_key, "policy_digest": candidate.get("policy_digest", ""),
+                "commit_sha": candidate.get("commit_sha", ""),
+                "predecessor_candidate_key": candidate.get("predecessor_candidate_key", ""),
+                "assessment_digest": assessment.get("assessment_digest", ""),
+                "repository_owner": candidate.get("repository_owner", ""),
+                "repository_name": candidate.get("repository_name", ""),
+                "gate_address": activation_gate, "delivery_retries": 0,
+            }
+            self.pending_activation_by_lineage[lineage] = json.dumps(pending, sort_keys=True)
+            gate = gl.get_contract_at(Address(activation_gate))
+            gate.emit(on="finalized").receive_admission(
+                lineage, sequence, candidate_key, pending["policy_digest"], pending["commit_sha"],
+                pending["predecessor_candidate_key"], pending["assessment_digest"],
+                pending["repository_owner"], pending["repository_name"])
         self.candidates[candidate_key] = json.dumps(candidate, sort_keys=True)
         return assessment
 
@@ -899,6 +1007,14 @@ Every frozen criterion id and every frozen evidence URL must appear exactly once
     @gl.public.view
     def get_admitted_history_json(self, lineage_key: str) -> str:
         return self.admitted_history_by_lineage.get(lineage_key, "[]")
+
+    @gl.public.view
+    def get_pending_activation_json(self, lineage_key: str) -> str:
+        return self.pending_activation_by_lineage.get(lineage_key, "{}") or "{}"
+
+    @gl.public.view
+    def get_activation_ack_history_json(self, lineage_key: str) -> str:
+        return self.activation_ack_history_by_lineage.get(lineage_key, "[]")
 
     @gl.public.view
     def list_policy_keys(self) -> list:
