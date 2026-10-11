@@ -104,5 +104,46 @@
       }
     },
     "productionCutover": "NOT_PERFORMED"
+  },
+  "throwawayLifecycle": {
+    "status": "COMPLETE_TEST_ONLY_PRODUCTION_UNCHANGED",
+    "registry": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
+    "registrySourceSha256": "244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1",
+    "policyKey": "truss-test-lifecycle-policy-20261011",
+    "lineage": "truss-test-lifecycle-20261011",
+    "policyDigest": "f35b27574be235f5a9a89be6e4f16f307048b54d50e30219e81b9808f0df54c1",
+    "policyTransaction": "0x9e057f5fed80f7b352337938d3dcd0461edf7f394ee8d66b7b5c41db7efcec2a",
+    "gate": "0xab7AE9c489d4d3bC7161De8BfAB92E661E2993DD",
+    "gateSourceSha256": "3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218",
+    "gateDeploymentTransaction": "0x554e4628db36774f8bbea3de3774ca9c4b76dba9d961b58da2ede5ad12511595",
+    "gateConfigurationTransaction": "0x0db37e5c29a06d0ad59d94fef8ceef7db8904b0c9dab33470b0e4a4fe771beb9",
+    "candidate": "truss-test-lifecycle-v012-candidate",
+    "commit": "52aca980fe74147efee7b79c3e19652dc2d3bfa7",
+    "openTransaction": "0x48f8437a72d6e39c9d1da2f74ac329d508dcc2d9df443cc4d97877045bfa41e9",
+    "attestationTransactions": [
+      "0xc9f914d7e2a99629e025d8dbd42325f774bee6acd7934723ad19a4429b62a238",
+      "0xb577f2ccb1a48ee49d185e304af3d93a86434c88b54ae8b3c35416196f6ec89d",
+      "0xacc47c40e6ac2eaee743a98c6589964024d5cdbad385a02b7a3485ad5b8305e4"
+    ],
+    "sealTransaction": "0x029a9dc6b8871bc776bd45ccd38550a52adcd01fdc88bee564d89cd0542d26cb",
+    "assessmentTransaction": "0x509ca389b1a097212b788e8609ceb8af379130f35b83ff926009a4a38422f8f7",
+    "admissionChildTransaction": "0xa52b2873bc52340c51e4275c3b1391fcd39176af13675a922d913e45f2324b63",
+    "activationTransaction": "0x5c0cc40e703995211bbd8375e1e9332ba9c4d7dd43157fa96ae5c50aa91a5ec9",
+    "acknowledgmentChildTransaction": "0xf995b4fb572e38045270c25e95a315816b60444bddb1ee494fed25b515bef83c",
+    "invalidCandidateRejectionTransaction": "0x228d1276971152d2e8f8f6cc397fec1603c2ef1fcb6bbe9f246b738942bc10b2",
+    "unauthorizedOperatorRejectionTransaction": "0x48896b67241eff6ab481aee66dde8f564e884b90921b8deaabe08d07f7ab0c57",
+    "canonicalPostState": {
+      "registryHead": "truss-test-lifecycle-v012-candidate",
+      "gateActiveCandidate": "truss-test-lifecycle-v012-candidate",
+      "registryAckHistorySequence": 1,
+      "registryPendingActivation": {},
+      "gateActivationHistorySequence": 1
+    },
+    "assuranceLimits": {
+      "issuerIndependence": "NOT_ESTABLISHED",
+      "testStatus": "ISSUER_COMMITTED_GITHUB_ACTIONS_METADATA_ONLY",
+      "signedGitTag": "UNSIGNED"
+    },
+    "explorer": "https://explorer-studio.genlayer.com"
   }
 }

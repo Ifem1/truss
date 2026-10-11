@@ -1,6 +1,6 @@
 # Implementation and security audit record
 
-**Snapshot:** 2026-10-10. This file separates current source/test behavior from deployed Studionet behavior. See the [live release matrix](LIVE_RELEASE_MATRIX.md) for status and transaction links.
+**Snapshot:** 2026-10-11. This file separates current source/test behavior from deployed Studionet behavior. See the [live release matrix](LIVE_RELEASE_MATRIX.md) for status and transaction links.
 
 ## Source changes in this review
 
@@ -15,20 +15,19 @@ The hardened registry source was deployed byte-for-byte at `0x20193443d1E429e498
 
 ## Current live state
 
-- Candidate `truss-actions-v012-candidate` on the replacement registry is `INSUFFICIENT_EVIDENCE`; its assessment ([transaction](https://explorer-studio.genlayer.com/tx/0x37b476904b211ca93a9367d4cebe3eca95d03bc34d6e423699152a745892df43)) lacked issuer commitment for the annotated tag-object response. A bounded retry can include that response; see the [live matrix](LIVE_RELEASE_MATRIX.md).
-- The replacement gate's canonical reads are active candidate `""`, history `[]`, pending admission `{}`, pending acknowledgment `{}`.
-- One unauthorized operator probe finalized `MAJORITY_AGREE` with leader execution `ERROR` at the authorization check ([transaction](https://explorer-studio.genlayer.com/tx/0x26c8cfef561df278f98a20745b4ec9918ea890e81cbaa9f1392b09b12f2fa903)); canonical state was unchanged.
-- The production alias still uses the old production registry and gate; no frontend cutover has occurred.
-- No positive registry-to-gate activation, finalized acknowledgment, or authorized invalid-candidate rejection has been proven. Direct Mode does not count as live evidence.
-
+- The replacement hardened registry is deployed at `0x20193443d1E429e4984B118FF54DC77547b0fBCB`, byte-matched to SHA-256 `244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1`. The existing compatible gate at `0xCA9AAa4C18f51e3454ce50dE65c76e52F56C550D` is byte-matched to SHA-256 `3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218`.
+- On a separate throwaway lineage, the same registry source completed a live GitHub-backed flow. The candidate finalized `ADMITTED`; the registry emitted a finalized gate admission; the configured operator activated it; and the gate emitted a finalized acknowledgment. Parent/child receipts and canonical poststate are linked in [the live release matrix](LIVE_RELEASE_MATRIX.md).
+- The authorized invalid-candidate call rolled back with `candidate has no matching finalized admission`; the non-operator call rolled back with `only configured operator may activate`. Both finalized with majority agreement and canonical gate state remained unchanged.
+- The original frozen lineage remains `INSUFFICIENT_EVIDENCE` from its first attempt because the tag-object bytes were omitted. Its designated issuer and publisher keys were not replaced with test wallets.
+- Production frontend configuration remains on its existing registry `0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f` and gate `0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6`. No production cutover was made to throwaway authority.
 ## Verification and security limits
 
-- Direct Mode: 57 passed, including redirect/source-substitution rejection, finalized-message consumer cases, and committed annotated-tag object verification.
-- The three activation receipts were inspected: leader node/model pairs were `5528/policy:prd-qwen`, `5521/policy:prd-sonnet`, and `5525/policy:prd-grok`; each reports the same 600-second leader execution timeout.
+- Direct Mode: 57 passed; unit tests: 2 passed; contract lint/validation: all seven contracts passed; TypeScript: passed; production build: passed; Playwright browser tests: 16 passed. Browser tests use fixture RPC and do not replace live evidence.
+- Historical LATEST_FINAL diagnostic writes timed out as documented in `STUDIONET_CROSS_CONTRACT_ISSUE.md`. The finalized-message mechanism now succeeds for actual TRUSS admission and acknowledgment.
 - `genlayer trace` cannot retrieve traces because Studionet RPC returns `-32601 Method not found` for `gen_dbg_traceTransaction`.
 - `genlayer appeal-bond` is unsupported by the configured chain because the SDK cannot resolve fee-manager and rounds-storage addresses. No appeal was submitted.
-- The finalized-message primitive succeeded on Studionet; the old `LATEST_FINAL` failure is not currently the reason this candidate is blocked. Candidate evidence needs a new issuer-attested round, and the frozen designated signer keys are not unlocked in the current OS keychain.
+- The production-lineage candidate still needs its predesignated issuer to submit a new committed evidence round. The separate throwaway lineage proves the live mechanism but does not authorize production cutover.
 - Actions-shaped metadata is issuer-committed content and is not proof of GitHub origin, independent workflow authorship, test design, or test quality. Distinct issuer wallets do not establish organizational independence.
 - The pinned `gl.nondet.web.get` interface does not expose redirect controls or final origin. Content commitments prevent unapproved body substitution but do not prove the remote origin.
 
-The mandatory live activation and authorized invalid-candidate rejection proofs remain outstanding. Production remains on the existing safe configuration. The historical `LATEST_FINAL` reproduction remains filed with [GenLayer issue #60](https://github.com/genlayerlabs/genvm-manager/issues/60); the message-based flow has an independent successful primitive test but not yet a complete TRUSS lifecycle proof.
+Live activation, acknowledgment, and authorized invalid-candidate rejection are proven on the throwaway test lineage. Production remains on its existing safe configuration until the existing production authority completes its lifecycle. The historical `LATEST_FINAL` reproduction remains filed with [GenLayer issue #60](https://github.com/genlayerlabs/genvm-manager/issues/60).
