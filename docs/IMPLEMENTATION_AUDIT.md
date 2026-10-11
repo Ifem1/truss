@@ -11,25 +11,24 @@
 - Policy assurance limits say that issuer wallets prove wallet control only, not organizational identity or independence. Unbound legacy test evidence is classified `ADOPTER_ASSERTED_CONTENT`.
 - Direct Mode tests cover arbitrary issuer content, invalid scopes, Actions metadata mismatch, and adversarial registry snapshots consumed by the activation gate.
 
-These are source changes only until deployed with a byte-matched contract. The PR #5, branch-push, and merged-master GitHub Actions workflows all passed; their run links are in the [live matrix](LIVE_RELEASE_MATRIX.md). The deployed registry at `0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f` predates the issuer and redirect hardening.
+The hardened registry source was deployed byte-for-byte at `0x20193443d1E429e4984B118FF54DC77547b0fBCB` (SHA-256 `244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1`). The finalized-message gate is deployed at `0xCA9AAa4C18f51e3454ce50dE65c76e52F56C550D` (SHA-256 `3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218`). Current local commit and CI state are in the [live matrix](LIVE_RELEASE_MATRIX.md).
 
 ## Current live state
 
-- The deployed registry's candidate `truss-actions-v012-candidate` is `ADMITTED`; its tag and successful GitHub Actions run were verified by the deployed source. The canonical admitted-head read returns that candidate.
-- The activation gate `0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6` still returns an empty active candidate and `[]` activation history.
-- Three activation calls finalized `NO_MAJORITY`. Each receipt records a distinct leader's `LEADER_EXEC_TIMEOUT` after 600 seconds, with zero votes committed/revealed. These are consensus execution timeouts, not successful TRUSS contract rejections.
-- The fourth invalid-candidate gate probe finalized with `NO_MAJORITY` after a 600-second leader timeout. It did not reach TRUSS-level rejection and is not a live rejection proof.
-- The production alias now points to the final registry and gate and returned HTTP 200. The frontend cutover is complete, but it cannot truthfully show an active release while the gate state is empty.
-- No live registry-to-gate activation lifecycle or live gate rejection has been proven. Do not present the Direct Mode hook tests as such evidence.
+- Candidate `truss-actions-v012-candidate` on the replacement registry is `INSUFFICIENT_EVIDENCE`; its assessment ([transaction](https://explorer-studio.genlayer.com/tx/0x37b476904b211ca93a9367d4cebe3eca95d03bc34d6e423699152a745892df43)) lacked issuer commitment for the annotated tag-object response. A bounded retry can include that response; see the [live matrix](LIVE_RELEASE_MATRIX.md).
+- The replacement gate's canonical reads are active candidate `""`, history `[]`, pending admission `{}`, pending acknowledgment `{}`.
+- One unauthorized operator probe finalized `MAJORITY_AGREE` with leader execution `ERROR` at the authorization check ([transaction](https://explorer-studio.genlayer.com/tx/0x26c8cfef561df278f98a20745b4ec9918ea890e81cbaa9f1392b09b12f2fa903)); canonical state was unchanged.
+- The production alias still uses the old production registry and gate; no frontend cutover has occurred.
+- No positive registry-to-gate activation, finalized acknowledgment, or authorized invalid-candidate rejection has been proven. Direct Mode does not count as live evidence.
 
 ## Verification and security limits
 
-- Direct Mode: 60 passed, including redirect/source-substitution rejection and 14 simulated cross-contract consumer cases.
+- Direct Mode: 57 passed, including redirect/source-substitution rejection, finalized-message consumer cases, and committed annotated-tag object verification.
 - The three activation receipts were inspected: leader node/model pairs were `5528/policy:prd-qwen`, `5521/policy:prd-sonnet`, and `5525/policy:prd-grok`; each reports the same 600-second leader execution timeout.
 - `genlayer trace` cannot retrieve traces because Studionet RPC returns `-32601 Method not found` for `gen_dbg_traceTransaction`.
 - `genlayer appeal-bond` is unsupported by the configured chain because the SDK cannot resolve fee-manager and rounds-storage addresses. No appeal was submitted.
-- The redirect changes passed GitHub Actions on PR #5 and merged master commit `0a37683`; they remain undeployed because live cross-contract execution is blocked.
+- The finalized-message primitive succeeded on Studionet; the old `LATEST_FINAL` failure is not currently the reason this candidate is blocked. Candidate evidence needs a new issuer-attested round, and the frozen designated signer keys are not unlocked in the current OS keychain.
 - Actions-shaped metadata is issuer-committed content and is not proof of GitHub origin, independent workflow authorship, test design, or test quality. Distinct issuer wallets do not establish organizational independence.
 - The pinned `gl.nondet.web.get` interface does not expose redirect controls or final origin. Content commitments prevent unapproved body substitution but do not prove the remote origin.
 
-The mandatory live activation and live invalid-candidate rejection proofs remain blocked by the minimal cross-contract `LATEST_FINAL` runtime failure. The repro is filed with [GenLayer issue #60](https://github.com/genlayerlabs/genvm-manager/issues/60). Do not submit speculative deployment or activation transactions until a minimal probe succeeds; the existing production addresses remain unchanged.
+The mandatory live activation and authorized invalid-candidate rejection proofs remain outstanding. Production remains on the existing safe configuration. The historical `LATEST_FINAL` reproduction remains filed with [GenLayer issue #60](https://github.com/genlayerlabs/genvm-manager/issues/60); the message-based flow has an independent successful primitive test but not yet a complete TRUSS lifecycle proof.

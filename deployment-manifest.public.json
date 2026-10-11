@@ -4,12 +4,12 @@
   "chainId": 61999,
   "rpc": "https://studio.genlayer.com/api",
   "explorer": "https://explorer-studio.genlayer.com",
-  "contract": "0xEf2aF888D4e764678d97a1EC38e7519047440fFb",
-  "deploymentTransaction": "0x5609cb13936ae6d497b3278b6aeab6afc523c425073f140c672b9e48843ba83d",
-  "deploymentExplorerUrl": "https://explorer-studio.genlayer.com/tx/0x5609cb13936ae6d497b3278b6aeab6afc523c425073f140c672b9e48843ba83d",
-  "repositorySourceSha256": "eff129604484b9d449660e265a435e4a1677a1c6548908cf7eee04068a0be5d3",
-  "deployedSourceSha256": "eff129604484b9d449660e265a435e4a1677a1c6548908cf7eee04068a0be5d3",
-  "sourceCommit": "a40145063f28544dab62dfde0453b5b7729b1739",
+  "contract": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
+  "deploymentTransaction": "0x4c007779b2c1de93f9cd84d3267c0fe09082a5c29baf63bb640b59e5a0fa9493",
+  "deploymentExplorerUrl": "https://explorer-studio.genlayer.com/tx/0x4c007779b2c1de93f9cd84d3267c0fe09082a5c29baf63bb640b59e5a0fa9493",
+  "repositorySourceSha256": "244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1",
+  "deployedSourceSha256": "244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1",
+  "sourceCommit": "e4339d96f2c5908b85bb8eba663dea907ce98dfe",
   "sourceVerification": "BYTE_MATCH",
   "status": "DEPLOYED_FINALIZED_BYTE_MATCH",
   "frontend": {
@@ -30,11 +30,12 @@
     "githubDeploymentId": 6918710861,
     "githubDeploymentStatus": "success",
     "chainId": 61999,
-    "contract": "0xEf2aF888D4e764678d97a1EC38e7519047440fFb",
+    "contract": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
     "contractConfiguration": "NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS is configured for Production; Vercel masks its sensitive value. The production bundle and successful read-only RPC calls verify the effective address.",
     "rpcConfiguration": "NEXT_PUBLIC_GENLAYER_RPC is not set; the canonical Studionet RPC default is used.",
     "explorerConfiguration": "NEXT_PUBLIC_GENLAYER_EXPLORER is not set; the canonical Studionet explorer default is used.",
-    "mockRuntime": false
+    "mockRuntime": false,
+    "activationGate": "0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6"
   },
   "previousDeployment": {
     "contract": "0x95800b68742FD083ECaee37FFE93Ad3333C7CF01",
@@ -66,5 +67,42 @@
     "stalePredecessorAssessmentTransaction": "0x1334ef381776c31f724a90121141645c7a3ef8e32a9a0633f9ef35b36d8a0a2c",
     "syntheticFixtures": true,
     "explorer": "https://explorer-studio.genlayer.com"
+  },
+  "activationGate": {
+    "contract": "0xCA9AAa4C18f51e3454ce50dE65c76e52F56C550D",
+    "deploymentTransaction": "0xb502379a0efd85e6b0022200d879399bdb8605d59c17934989d65d69a50f67c0",
+    "deploymentExplorerUrl": "https://explorer-studio.genlayer.com/tx/0xb502379a0efd85e6b0022200d879399bdb8605d59c17934989d65d69a50f67c0",
+    "repositorySourceSha256": "3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218",
+    "deployedSourceSha256": "3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218",
+    "sourceVerification": "BYTE_MATCH",
+    "status": "DEPLOYED_FINALIZED_BYTE_MATCH"
+  },
+  "replacementLifecycle": {
+    "status": "INCOMPLETE_ADMISSION_NOT_YET_FINALIZED",
+    "policyKey": "truss-actions-v012-policy",
+    "policyDigest": "38055583cb367a31a9ac8ef7daa9c450f6e66271fd4a5920d1f6052127f7a1a5",
+    "policyTransaction": "0xc54ca380a7353abf5eee19710f8aa3b925e49483c5b22a6bbd8c471e801168e0",
+    "gateConfigurationTransaction": "0x6b3ea7cb2d7307935364e531eb91052c1d07e53ac07c8215957f0c7954783231",
+    "candidate": "truss-actions-v012-candidate",
+    "assessmentTransaction": "0x37b476904b211ca93a9367d4cebe3eca95d03bc34d6e423699152a745892df43",
+    "assessment": "INSUFFICIENT_EVIDENCE",
+    "reason": "The issuer-committed round omitted the annotated tag-object response required to resolve the GitHub tag to the candidate commit.",
+    "retryEvidence": {
+      "tagObjectUrl": "https://api.github.com/repos/Ifem1/truss/git/tags/c10939d6449a107dfd84de2981d69dc8727d6822",
+      "tagObjectSha256": "ee9b1cfe368d74405d16b57f6f212933d57f7f4a7095168ece122b603a495f72",
+      "resolvedCommit": "52aca980fe74147efee7b79c3e19652dc2d3bfa7"
+    },
+    "unauthorizedOperatorProbe": {
+      "transaction": "0x26c8cfef561df278f98a20745b4ec9918ea890e81cbaa9f1392b09b12f2fa903",
+      "explorerUrl": "https://explorer-studio.genlayer.com/tx/0x26c8cfef561df278f98a20745b4ec9918ea890e81cbaa9f1392b09b12f2fa903",
+      "receipt": "FINALIZED_MAJORITY_AGREE_LEADER_ERROR",
+      "postState": {
+        "activeCandidate": "",
+        "activationHistory": [],
+        "pendingAdmission": {},
+        "pendingAcknowledgment": {}
+      }
+    },
+    "productionCutover": "NOT_PERFORMED"
   }
 }

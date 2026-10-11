@@ -394,6 +394,38 @@ def test_github_requests_use_supported_headers_and_actions_run_is_commit_bound(d
     assert "could not be verified" in assessment["identity_finding"]
 
 
+def test_annotated_github_tag_requires_committed_tag_object(direct_vm, direct_deploy):
+    c = setup(direct_vm, direct_deploy)
+    label, sha, tag_object = "v1.0.0", "a" * 40, "c" * 40
+    prefix = "https://api.github.com/repos/Ifem1/truss"
+    ref_url = f"{prefix}/git/ref/tags/{label}"
+    tag_url = f"{prefix}/git/tags/{tag_object}"
+    actions_url = f"{prefix}/actions/runs/12345"
+    ref_body = json.dumps({"ref": f"refs/tags/{label}", "object": {"type": "tag", "sha": tag_object}})
+    tag_body = json.dumps({"sha": tag_object, "object": {"type": "commit", "sha": sha}})
+    actions_body = json.dumps({
+        "id": 12345, "status": "completed", "conclusion": "success", "head_sha": sha,
+        "repository": {"full_name": "Ifem1/truss"}, "path": ".github/workflows/ci.yml", "event": "push",
+    })
+    for url, body in ((ref_url, ref_body), (tag_url, tag_body), (actions_url, actions_body)):
+        direct_vm.mock_web(re.escape(url), {"status": 200, "body": body})
+    policy = {"repository_owner": "Ifem1", "repository_name": "truss"}
+    candidate = {"commit_sha": sha, "release_label": label}
+    evidence = [
+        {"role": "RELEASE_IDENTITY", "url": ref_url},
+        {"role": "RELEASE_IDENTITY", "url": tag_url},
+        {"role": "TEST_STATUS", "url": actions_url},
+    ]
+    commitments = {url: hashlib.sha256(body.encode()).hexdigest()
+                   for url, body in ((ref_url, ref_body), (tag_url, tag_body), (actions_url, actions_body))}
+    provenance = c._github_provenance(policy, candidate, evidence, commitments)
+    assert provenance["annotated_tag"] is True
+    assert provenance["tag_resolves_to_commit"] is True
+    assert c._provenance_satisfied(provenance)
+    commitments.pop(tag_url)
+    assert not c._provenance_satisfied(c._github_provenance(policy, candidate, evidence, commitments))
+
+
 def test_malformed_policy_criteria_and_evidence_scopes_rejected(direct_vm, direct_deploy):
     c = setup(direct_vm, direct_deploy)
     base = ["policy-bad", "lineage-bad", "Software", "org", "repo", "x"*30, "y"*100]
