@@ -87,11 +87,11 @@
   "productionReplacementCutover": "COMPLETE",
   "productionDeployment": {
     "project": "ifem1s-projects/truss",
-    "deploymentId": "dpl_cjvrTkE8QAjoqrfP7zjMvgU11kQ3",
-    "deploymentUrl": "https://truss-cgs6rfhby-ifem1s-projects.vercel.app",
+    "deploymentId": "dpl_oDQ3fwpd5HneoM5hVSKKZj8DbXjF",
+    "deploymentUrl": "https://truss-65wuecz78-ifem1s-projects.vercel.app",
     "alias": "https://truss-gray.vercel.app",
     "status": "READY",
-    "deploymentCommit": "3b1a7703efb1df1a0fd586729a8152ce0d9e09ab",
+    "deploymentCommit": "a041b6b90414b65214cf5fe8c931e70c5541580c",
     "registryAddress": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
     "activationGateAddress": "0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b",
     "environmentVariablesUpdated": true,
@@ -114,6 +114,7 @@
         "/",
         "/policy/new",
         "/release/new",
+        "/policy/truss-actions-v012-policy-successor",
         "/release/truss-actions-v012-candidate-successor"
       ],
       "desktop": "PASS",
@@ -121,10 +122,17 @@
       "horizontalOverflow": false,
       "consoleErrors": 0,
       "liveCandidateStatus": "ADMITTED",
-      "liveGateActiveCandidate": "truss-actions-v012-candidate-successor"
+      "liveGateActiveCandidate": "truss-actions-v012-candidate-successor",
+      "testedWidthsPx": [
+        320,
+        390,
+        768,
+        1024,
+        1440
+      ]
     },
-    "sourceCommit": "d1f6f62154dccfdb01943eb33dcfa0e550557ac2",
-    "sourceCommitNote": "Frontend code last changed at this commit; deployed commit 3b1a770 is documentation/manifest-only relative to it."
+    "sourceCommit": "a041b6b90414b65214cf5fe8c931e70c5541580c",
+    "sourceCommitNote": "Responsive evidence wrapping was corrected in this deployed source commit. This is the READY deployment used for the 2026-10-12 closeout browser smoke. A later documentation-only push may create a new Vercel deployment with identical application code."
   },
   "liveLifecycle": {
     "registryAddress": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
@@ -194,7 +202,7 @@
   },
   "runtimeIssue": "https://github.com/genlayerlabs/genvm-manager/issues/60",
   "note": "Production lifecycle is finalized against the hardened registry and successor-policy gate. Production Vercel now uses the verified pair. The earlier LATEST_FINAL synchronous-call failure remains historical; finalized messages avoid that path. Issuer independence and GitHub Actions metadata trust limitations remain explicit.",
-  "snapshot": "PRODUCTION_CLOSEOUT_2026-10-11",
+  "snapshot": "PRODUCTION_CLOSEOUT_2026-10-12",
   "productionAuthorityPair": {
     "network": "Studionet",
     "chainId": 61999,
@@ -408,7 +416,7 @@
     "typecheck": "PASS",
     "productionBuild": "PASS with production contract addresses",
     "playwright": "PASS: 18/18",
-    "publicBrowserSmoke": "PASS: routes and admitted dossier, desktop/mobile, no console errors or horizontal overflow",
-    "githubActions": "PASS: https://github.com/Ifem1/truss/actions/runs/38177728479 (master 3b1a7703efb1df1a0fd586729a8152ce0d9e09ab)"
+    "publicBrowserSmoke": "PASS: production alias, five routes, mobile/tablet/desktop widths 320/390/768/1024/1440, no page errors or horizontal overflow; live dossier ADMITTED and acknowledged",
+    "githubActions": "PASS: https://github.com/Ifem1/truss/actions/runs/38183133088 (master a041b6b90414b65214cf5fe8c931e70c5541580c)"
   }
 }

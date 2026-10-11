@@ -30,8 +30,8 @@
   "frontend": {
     "productionUrl": "https://truss-gray.vercel.app",
     "productionAlias": "https://truss-gray.vercel.app",
-    "deploymentUrl": "https://truss-cgs6rfhby-ifem1s-projects.vercel.app",
-    "vercelDeploymentId": "dpl_cjvrTkE8QAjoqrfP7zjMvgU11kQ3",
+    "deploymentUrl": "https://truss-65wuecz78-ifem1s-projects.vercel.app",
+    "vercelDeploymentId": "dpl_oDQ3fwpd5HneoM5hVSKKZj8DbXjF",
     "projectName": "truss",
     "projectId": "prj_mYHmZKlGjgyGxKoIAw2W5fjBcQxQ",
     "status": "READY",
@@ -40,7 +40,7 @@
     "contract": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
     "activationGate": "0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b",
     "readOnlySmokeVerification": {
-      "verifiedAt": "2026-10-11",
+      "verifiedAt": "2026-10-12",
       "routes": {
         "/": {
           "status": 200
@@ -50,6 +50,16 @@
         },
         "/release/new": {
           "status": 200
+        },
+        "/policy/truss-actions-v012-policy-successor": {
+          "status": 200
+        },
+        "/release/truss-actions-v012-candidate-successor": {
+          "status": 200,
+          "candidateStatus": "ADMITTED",
+          "activeCandidate": "truss-actions-v012-candidate-successor",
+          "gateAddress": "0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b",
+          "consoleErrors": 0
         }
       },
       "publicBundles": {
@@ -70,9 +80,9 @@
         "consoleErrors": 0
       }
     },
-    "sourceCommit": "d1f6f62154dccfdb01943eb33dcfa0e550557ac2",
-    "deploymentCommit": "3b1a7703efb1df1a0fd586729a8152ce0d9e09ab",
-    "sourceCommitNote": "Frontend code last changed at this commit; deployed commit 3b1a770 is documentation/manifest-only relative to it."
+    "sourceCommit": "a041b6b90414b65214cf5fe8c931e70c5541580c",
+    "deploymentCommit": "a041b6b90414b65214cf5fe8c931e70c5541580c",
+    "sourceCommitNote": "This READY deployment was used for the 2026-10-12 closeout smoke. Responsive evidence wrapping was corrected in this source commit. A later documentation-only push may create a new Vercel deployment with identical application code."
   },
   "previousDeployment": {
     "contract": "0x95800b68742FD083ECaee37FFE93Ad3333C7CF01",
@@ -234,7 +244,8 @@
     "typecheck": "PASS",
     "productionBuild": "PASS with production contract addresses",
     "playwright": "PASS: 18/18",
-    "publicBrowserSmoke": "PASS: routes and admitted dossier, desktop/mobile, no console errors or horizontal overflow",
-    "githubActions": "PASS: https://github.com/Ifem1/truss/actions/runs/38177728479 (master 3b1a7703efb1df1a0fd586729a8152ce0d9e09ab)"
-  }
+    "publicBrowserSmoke": "PASS: production alias, five routes, tested widths 320/390/768/1024/1440; live dossier ADMITTED and acknowledged; no page errors or horizontal overflow",
+    "githubActions": "PASS: https://github.com/Ifem1/truss/actions/runs/38183133088 (master a041b6b90414b65214cf5fe8c931e70c5541580c)"
+  },
+  "snapshot": "PRODUCTION_CLOSEOUT_2026-10-12"
 }
