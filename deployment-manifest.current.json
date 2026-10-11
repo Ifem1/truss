@@ -71,7 +71,39 @@
     "registryAddress": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
     "activationGateAddress": "0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
     "smokeTestHttpStatus": 200,
-    "bundleAddressVerification": true
+    "bundleAddressVerification": true,
+    "readOnlySmokeVerification": {
+      "verifiedAt": "2026-10-11",
+      "routes": {
+        "/": {
+          "status": 200,
+          "contentType": "text/html; charset=utf-8",
+          "trussRendered": true,
+          "configurationError": false
+        },
+        "/policy/new": {
+          "status": 200,
+          "contentType": "text/html; charset=utf-8",
+          "trussRendered": true,
+          "configurationError": false
+        },
+        "/release/new": {
+          "status": 200,
+          "contentType": "text/html; charset=utf-8",
+          "trussRendered": true,
+          "configurationError": false
+        }
+      },
+      "publicBundles": {
+        "scanned": 11,
+        "legacyRegistryAddressPresent": true,
+        "hardenedRegistryAddressPresent": false,
+        "legacyGateAddressPresent": true,
+        "hardenedGateAddressPresent": false,
+        "failedBundleRequests": 0
+      },
+      "cutover": "NOT_PERFORMED"
+    }
   },
   "liveLifecycle": {
     "registryAddress": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
@@ -158,7 +190,24 @@
       "gatePendingAdmission": {},
       "gatePendingAcknowledgment": {}
     },
-    "status": "BLOCKED_FROZEN_POLICY_EVIDENCE_SCOPE"
+    "status": "BLOCKED_FROZEN_POLICY_EVIDENCE_SCOPE",
+    "policyScopeRejectionProbe": {
+      "transaction": "0x038351323b93ad1d039edada03fcefd45e3b7e55ad6cbd3e6f3867c35bd643c5",
+      "explorerUrl": "https://explorer-studio.genlayer.com/tx/0x038351323b93ad1d039edada03fcefd45e3b7e55ad6cbd3e6f3867c35bd643c5",
+      "sender": "0xa49c51d759790116d451f256654dd9f0549d341f",
+      "call": "append_evidence_round",
+      "finality": "FINALIZED",
+      "consensus": "MAJORITY_AGREE",
+      "leaderExecution": "ERROR",
+      "rollback": "evidence URL is outside the role's allowed scope",
+      "canonicalPostState": {
+        "candidateStatus": "INSUFFICIENT_EVIDENCE",
+        "evidenceRoundsUsed": 1,
+        "assessmentAttemptsUsed": 1,
+        "admittedHead": "",
+        "pendingActivation": {}
+      }
+    }
   },
   "notes": "The previously recorded LATEST_FINAL synchronous-call timeouts are historical and are avoided by finalized messages. A separate throwaway lineage proves the message lifecycle but is not the production candidate or authority.",
   "legacyFrontendRegistry": {

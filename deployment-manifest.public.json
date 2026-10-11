@@ -35,7 +35,39 @@
     "rpcConfiguration": "NEXT_PUBLIC_GENLAYER_RPC is not set; the canonical Studionet RPC default is used.",
     "explorerConfiguration": "NEXT_PUBLIC_GENLAYER_EXPLORER is not set; the canonical Studionet explorer default is used.",
     "mockRuntime": false,
-    "activationGate": "0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6"
+    "activationGate": "0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
+    "readOnlySmokeVerification": {
+      "verifiedAt": "2026-10-11",
+      "routes": {
+        "/": {
+          "status": 200,
+          "contentType": "text/html; charset=utf-8",
+          "trussRendered": true,
+          "configurationError": false
+        },
+        "/policy/new": {
+          "status": 200,
+          "contentType": "text/html; charset=utf-8",
+          "trussRendered": true,
+          "configurationError": false
+        },
+        "/release/new": {
+          "status": 200,
+          "contentType": "text/html; charset=utf-8",
+          "trussRendered": true,
+          "configurationError": false
+        }
+      },
+      "publicBundles": {
+        "scanned": 11,
+        "legacyRegistryAddressPresent": true,
+        "hardenedRegistryAddressPresent": false,
+        "legacyGateAddressPresent": true,
+        "hardenedGateAddressPresent": false,
+        "failedBundleRequests": 0
+      },
+      "cutover": "NOT_PERFORMED"
+    }
   },
   "previousDeployment": {
     "contract": "0x95800b68742FD083ECaee37FFE93Ad3333C7CF01",
@@ -125,6 +157,23 @@
       "contractValidation": "_evidence rejects evidence URLs outside the frozen role scope",
       "signerAvailability": "Designated publisher and issuer are locally unlocked and funded",
       "productionRetrySubmitted": false
+    },
+    "policyScopeRejectionProbe": {
+      "transaction": "0x038351323b93ad1d039edada03fcefd45e3b7e55ad6cbd3e6f3867c35bd643c5",
+      "explorerUrl": "https://explorer-studio.genlayer.com/tx/0x038351323b93ad1d039edada03fcefd45e3b7e55ad6cbd3e6f3867c35bd643c5",
+      "sender": "0xa49c51d759790116d451f256654dd9f0549d341f",
+      "call": "append_evidence_round",
+      "finality": "FINALIZED",
+      "consensus": "MAJORITY_AGREE",
+      "leaderExecution": "ERROR",
+      "rollback": "evidence URL is outside the role's allowed scope",
+      "canonicalPostState": {
+        "candidateStatus": "INSUFFICIENT_EVIDENCE",
+        "evidenceRoundsUsed": 1,
+        "assessmentAttemptsUsed": 1,
+        "admittedHead": "",
+        "pendingActivation": {}
+      }
     }
   },
   "throwawayLifecycle": {
