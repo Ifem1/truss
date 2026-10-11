@@ -137,6 +137,86 @@ def test_unauthorized_successor_and_policy_lineage_race_rejected(direct_vm, dire
         c.create_policy("policy-v2", c._test_lineage_key, "TRUSS fixture", "Ifem1", "fixture", "x"*30, "y"*100, json.dumps([{"id":"CHECKS_PASS","title":"Checks pass","rule":"A sufficiently long rule for test purposes only."}]), json.dumps(["RELEASE_IDENTITY"]), json.dumps({"RELEASE_IDENTITY":["evidence.example.org|/release/"]}), c._test_policy_key)
 
 
+def test_frozen_tag_object_scope_rejects_then_successor_preserves_authority_and_accepts_exact_github_urls(direct_vm, direct_deploy):
+    direct_vm.warp(BASE)
+    c = direct_deploy(CONTRACT)
+    owner = bytes.fromhex("11" * 20)
+    publisher = "0x" + "22" * 20
+    issuer = "0x" + "33" * 20
+    lineage = "lineage-scope-migration"
+    usage_context = "This public fixture exercises one frozen lineage and an authorized issuer-bound successor revision."
+    admission_policy = "Admission requires an exact tag reference, annotated-tag object, and canonical Actions run for the frozen candidate commit."
+    criteria = [{"id": "CHECKS_PASS", "title": "Required checks pass", "rule": "The canonical Actions result must report success for this exact committed release."}]
+    tag_ref = "https://api.github.com/repos/Ifem1/fixture/git/ref/tags/v1.2.3"
+    tag_object = "https://api.github.com/repos/Ifem1/fixture/git/tags/" + "a" * 40
+    actions = "https://api.github.com/repos/Ifem1/fixture/actions/runs/12345"
+
+    direct_vm.sender = owner
+    c.create_policy_with_issuers(
+        "policy-v1-scope", lineage, "TRUSS fixture", "Ifem1", "fixture",
+        usage_context, admission_policy, json.dumps(criteria),
+        json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
+        json.dumps({
+            "RELEASE_IDENTITY": ["api.github.com|/repos/Ifem1/fixture/git/ref/tags/"],
+            "TEST_STATUS": ["api.github.com|/repos/Ifem1/fixture/actions/runs/"],
+        }),
+        "", publisher,
+        json.dumps({"RELEASE_IDENTITY": issuer, "TEST_STATUS": issuer}),
+    )
+
+    direct_vm.sender = bytes.fromhex("22" * 20)
+    with direct_vm.expect_revert("outside the role's allowed scope"):
+        c.open_candidate("frozen-scope-candidate", "policy-v1-scope", "v1.2.3", "a" * 40, "", json.dumps([
+            {"role": "RELEASE_IDENTITY", "url": tag_ref},
+            {"role": "RELEASE_IDENTITY", "url": tag_object},
+            {"role": "TEST_STATUS", "url": actions},
+        ]))
+
+    successor = "policy-v2-scope-fix"
+    direct_vm.sender = owner
+    assert c.create_policy_with_issuers(
+        successor, lineage, "TRUSS fixture", "Ifem1", "fixture",
+        usage_context, admission_policy, json.dumps(criteria),
+        json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
+        json.dumps({
+            "RELEASE_IDENTITY": [
+                "api.github.com|/repos/Ifem1/fixture/git/ref/tags/",
+                "api.github.com|/repos/Ifem1/fixture/git/tags/",
+            ],
+            "TEST_STATUS": ["api.github.com|/repos/Ifem1/fixture/actions/runs/"],
+        }),
+        "policy-v1-scope", publisher,
+        json.dumps({"RELEASE_IDENTITY": issuer, "TEST_STATUS": issuer}),
+    ) == successor
+    previous = json.loads(c.get_policy_json("policy-v1-scope"))
+    updated = json.loads(c.get_policy_json(successor))
+    assert updated["predecessor_policy_key"] == "policy-v1-scope"
+    assert updated["lineage_key"] == previous["lineage_key"] == lineage
+    assert updated["owner"] == previous["owner"]
+    assert updated["publisher"] == publisher
+    assert updated["repository_owner"] == previous["repository_owner"]
+    assert updated["repository_name"] == previous["repository_name"]
+    assert updated["usage_context"] == previous["usage_context"]
+    assert updated["admission_policy"] == previous["admission_policy"]
+    assert updated["criteria"] == previous["criteria"]
+    assert updated["required_roles"] == ["RELEASE_IDENTITY", "TEST_STATUS"]
+    assert updated["evidence_issuers"] == {"RELEASE_IDENTITY": issuer, "TEST_STATUS": issuer}
+    assert updated["evidence_authorities"]["RELEASE_IDENTITY"] == [
+        {"host": "api.github.com", "path_prefix": "/repos/Ifem1/fixture/git/ref/tags/"},
+        {"host": "api.github.com", "path_prefix": "/repos/Ifem1/fixture/git/tags/"},
+    ]
+    assert updated["evidence_authorities"]["TEST_STATUS"] == [
+        {"host": "api.github.com", "path_prefix": "/repos/Ifem1/fixture/actions/runs/"},
+    ]
+
+    direct_vm.sender = bytes.fromhex("22" * 20)
+    assert c.open_candidate("successor-scope-candidate", successor, "v1.2.3", "a" * 40, "", json.dumps([
+        {"role": "RELEASE_IDENTITY", "url": tag_ref},
+        {"role": "RELEASE_IDENTITY", "url": tag_object},
+        {"role": "TEST_STATUS", "url": actions},
+    ])) == "successor-scope-candidate"
+
+
 def test_policy_owner_can_designate_a_distinct_publisher_without_impersonation(direct_vm, direct_deploy):
     c = setup(direct_vm, direct_deploy)
     owner = bytes.fromhex("11" * 20)

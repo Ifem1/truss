@@ -1,6 +1,10 @@
 # Review Evidence
 
-**Historical snapshot (2026-10-07):** This file records earlier contract and production evidence. Its contracts, source commits, addresses and frontend configuration are historical, not the current configuration. Current issuer-hardening deployments, the frozen-policy evidence-scope blocker and the unchanged frontend pair are in the [live release matrix](LIVE_RELEASE_MATRIX.md) and [deployment record](DEPLOYMENT.md). The older `LATEST_FINAL` reproduction remains historical in the [Studionet issue](STUDIONET_CROSS_CONTRACT_ISSUE.md).
+## Policy-scope closeout UI
+
+The local closeout adds exact repository-bound GitHub tag-ref, annotated-tag-object and Actions-run URL scope checks before immutable policy publication. The guard runs for both structured editor values and Advanced JSON, and runs again immediately before wallet submission. Regression coverage is in the Direct Mode successor/scope test and two Playwright policy-form cases. Local test totals and unchanged production status are recorded in [the live matrix](LIVE_RELEASE_MATRIX.md). This UI validation does not change frozen on-chain policy or constitute a production admission.
+
+This file retains historical contract and adversarial evidence, followed by the current production closeout record below. Older addresses and frontend configurations are historical unless explicitly identified as current. The older `LATEST_FINAL` reproduction remains historical in the [Studionet issue](STUDIONET_CROSS_CONTRACT_ISSUE.md).
 
 ## Verification at frontend source commit `f668c80b7e29602c493e1f505be598a83183373f` (2026-10-07)
 
@@ -57,3 +61,16 @@ An earlier malformed live fixture attempted to use `TEST_STATUS` although the fr
 - The browser transaction tests exercise frontend state transitions with controlled RPC fixtures; the actual live-chain lifecycles are separately recorded above.
 - The pinned SDK web fetch does not expose redirect controls; automatic redirect-following cannot be ruled out.
 - Live fixture content is synthetic and must never be presented as production release/security evidence.
+
+## Production closeout: successor-policy lifecycle
+
+The following supersedes earlier notes in this file that said the production candidate could not be completed or that Vercel remained on the legacy pair. The original policy and original candidate remain immutable history; the registry was not redeployed.
+
+- Successor policy `truss-actions-v012-policy-successor`, digest `98d2258d996ef00bb30713d8d91e2c1073b2806716218c44845590477b8f1f40`: [creation transaction](https://explorer-studio.genlayer.com/tx/0x3e22e46beab9352bffeb5e28a4b10d2ea5cd58c75869db1821de7b00e806c8e6).
+- Production gate `0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b`: [deployment](https://explorer-studio.genlayer.com/tx/0x5fec5b82353f3b24f9c66143fa8ee99bd0d7186405fd5cb15c40ab1c558ae254), [registry configuration](https://explorer-studio.genlayer.com/tx/0xa50ae943029ac359cdc5c1ceef12e68dc8a9475b4e581537e6bc325342d5810f). Gate source SHA-256 matches `3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218`.
+- Candidate `truss-actions-v012-candidate-successor`, commit `52aca980fe74147efee7b79c3e19652dc2d3bfa7`, finalized `ADMITTED`: [assessment](https://explorer-studio.genlayer.com/tx/0x8f44f941ccd45476f7c18bea79efd9c7011f729b4fc17aa6bbb5f9bd8ad82cdc), [finalized admission child](https://explorer-studio.genlayer.com/tx/0x830db59e78e285a67cd6aad67d0fd54984f67fee48ff711e2b3df872fdbbeb65), [activation](https://explorer-studio.genlayer.com/tx/0x71b93543bcfa64a0dc1cd7bb5222673f721aa8c0377247ec3e2cf22d30bf103b), [acknowledgment child](https://explorer-studio.genlayer.com/tx/0x020c415c3c8e607c7d128c298cf576b79ef7a9fd33670a33d6ab90bf3d5016c4).
+- Production invalid-candidate rejection: [transaction](https://explorer-studio.genlayer.com/tx/0xcf010d1c064af6fa2a7876a6bd5017e82fc9ebd213fc9099e046fee29ff1857e), reason `candidate has no matching finalized admission`. Unauthorized operator rejection: [transaction](https://explorer-studio.genlayer.com/tx/0xb230c50a9207aba6ed5c9b1ac92b7132c00c1ea07a8d015a2bf6d5c7800533f3), reason `only configured operator may activate`. Both finalized with majority agreement and left canonical gate state unchanged.
+- Canonical readback: registry admitted head and gate active candidate equal `truss-actions-v012-candidate-successor`; registry pending activation and gate pending admission are empty; registry acknowledgment history records sequence 1. Gate activation history records sequence 1, the candidate commit and policy digest. Gate pending acknowledgment retains a sequence 1 retry/outbox record with retry count 0 after delivery; registry acknowledgment history proves the child was accepted.
+- Production Vercel deployment `dpl_87pNvnQDH6yAqjnK88qqr2jZt61v` is READY at [truss-gray.vercel.app](https://truss-gray.vercel.app). Public bundles include the verified registry/gate and exclude both previous production addresses. `/`, `/policy/new` and `/release/new` returned rendered pages without configuration errors.
+
+Assurance remains bounded: issuer organizational independence is not established, the tag is unsigned, GitHub Actions status is issuer-committed metadata, and the SDK does not reveal the final redirect origin. The policy restricts admission-critical evidence to canonical GitHub API endpoint shapes and role scopes, commits exact response bytes, and validates the endpoint-specific provenance fields; it does not claim that the final HTTP origin was directly observed.

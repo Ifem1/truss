@@ -127,6 +127,43 @@ test("policy form is reachable", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /set the standard before the release/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /add criterion/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /release identity/i })).toBeVisible();
+  await page.getByLabel("Repository owner").fill("Ifem1");
+  await page.getByLabel("Repository name").fill("truss");
+  await expect(page.getByText(/all three evidence URLs are covered/i)).toBeVisible();
+});
+
+test("policy publication blocks a structured tag-object URL outside the frozen role scope", async ({ page }) => {
+  await installWallet(page);
+  await page.goto("/policy/new");
+  await page.getByLabel("Repository owner").fill("Ifem1");
+  await page.getByLabel("Repository name").fill("truss");
+  await page.getByLabel("Path prefix").first().fill("/repos/Ifem1/truss/git/ref/tags/");
+  await page.getByLabel("Annotated-tag object API URL").fill("https://api.github.com/repos/Ifem1/truss/git/tags/abc123");
+  await expect(page.locator(".error[role=alert]")).toContainText("GitHub annotated-tag object URL");
+  await expect(page.getByRole("button", { name: /publish immutable policy/i })).toBeDisabled();
+});
+
+test("Advanced JSON cannot bypass release or Actions API scope checks", async ({ page }) => {
+  await installWallet(page);
+  await page.goto("/policy/new");
+  await page.getByLabel("Repository owner").fill("Ifem1");
+  await page.getByLabel("Repository name").fill("truss");
+  await page.getByText("Advanced JSON", { exact: true }).click();
+  await page.getByLabel("Authorities JSON").fill(JSON.stringify({
+    RELEASE_IDENTITY: ["api.github.com|/repos/Ifem1/truss/git/ref/tags/"],
+    TEST_STATUS: ["github.com|/"],
+  }));
+  await expect(page.locator(".error[role=alert]")).toContainText("GitHub annotated-tag object URL");
+  await expect(page.locator(".error[role=alert]")).toContainText("canonical GitHub Actions run API URL");
+  await expect(page.getByRole("button", { name: /publish immutable policy/i })).toBeDisabled();
+  await page.getByLabel("Authorities JSON").fill(JSON.stringify({
+    RELEASE_IDENTITY: [
+      "api.github.com|/repos/Ifem1/truss/git/ref/tags/",
+      "api.github.com|/repos/Ifem1/truss/git/tags/",
+    ],
+    TEST_STATUS: ["api.github.com|/repos/Ifem1/truss/actions/runs/"],
+  }));
+  await expect(page.getByText(/all three evidence URLs are covered/i)).toBeVisible();
 });
 
 test("release form asks for exact commit", async ({ page }) => {
