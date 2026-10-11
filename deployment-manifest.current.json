@@ -87,11 +87,11 @@
   "productionReplacementCutover": "COMPLETE",
   "productionDeployment": {
     "project": "ifem1s-projects/truss",
-    "deploymentId": "dpl_oDQ3fwpd5HneoM5hVSKKZj8DbXjF",
-    "deploymentUrl": "https://truss-65wuecz78-ifem1s-projects.vercel.app",
+    "deploymentId": "dpl_37pLvQkTb8WF2D4rUQyzdqfhoB9C",
+    "deploymentUrl": "https://truss-du4if71qc-ifem1s-projects.vercel.app",
     "alias": "https://truss-gray.vercel.app",
     "status": "READY",
-    "deploymentCommit": "a041b6b90414b65214cf5fe8c931e70c5541580c",
+    "deploymentCommit": "db6313b3831f102afbb698018a279f939c1ea3d9",
     "registryAddress": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
     "activationGateAddress": "0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b",
     "environmentVariablesUpdated": true,
@@ -131,8 +131,8 @@
         1440
       ]
     },
-    "sourceCommit": "a041b6b90414b65214cf5fe8c931e70c5541580c",
-    "sourceCommitNote": "Responsive evidence wrapping was corrected in this deployed source commit. This is the READY deployment used for the 2026-10-12 closeout browser smoke. A later documentation-only push may create a new Vercel deployment with identical application code."
+    "sourceCommit": "db6313b3831f102afbb698018a279f939c1ea3d9",
+    "sourceCommitNote": "Includes responsive wrapping and root clipping for the decorative flow field. READY deployment dpl_37p was the live build tested for the 2026-10-12 final browser closeout; the follow-up documentation-only commit may trigger another deployment with identical application code."
   },
   "liveLifecycle": {
     "registryAddress": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
@@ -416,7 +416,7 @@
     "typecheck": "PASS",
     "productionBuild": "PASS with production contract addresses",
     "playwright": "PASS: 18/18",
-    "publicBrowserSmoke": "PASS: production alias, five routes, mobile/tablet/desktop widths 320/390/768/1024/1440, no page errors or horizontal overflow; live dossier ADMITTED and acknowledged",
-    "githubActions": "PASS: https://github.com/Ifem1/truss/actions/runs/38183133088 (master a041b6b90414b65214cf5fe8c931e70c5541580c)"
+    "publicBrowserSmoke": "PASS: public routes; live policy and release details at 320px; local production build across 320/390/768/1024/1440px; no page errors or horizontal overflow; live dossier state previously confirmed ADMITTED and acknowledged",
+    "githubActions": "PASS: https://github.com/Ifem1/truss/actions/runs/38184354359 (master db6313b3831f102afbb698018a279f939c1ea3d9)"
   }
 }

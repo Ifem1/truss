@@ -30,8 +30,8 @@
   "frontend": {
     "productionUrl": "https://truss-gray.vercel.app",
     "productionAlias": "https://truss-gray.vercel.app",
-    "deploymentUrl": "https://truss-65wuecz78-ifem1s-projects.vercel.app",
-    "vercelDeploymentId": "dpl_oDQ3fwpd5HneoM5hVSKKZj8DbXjF",
+    "deploymentUrl": "https://truss-du4if71qc-ifem1s-projects.vercel.app",
+    "vercelDeploymentId": "dpl_37pLvQkTb8WF2D4rUQyzdqfhoB9C",
     "projectName": "truss",
     "projectId": "prj_mYHmZKlGjgyGxKoIAw2W5fjBcQxQ",
     "status": "READY",
@@ -52,13 +52,15 @@
           "status": 200
         },
         "/policy/truss-actions-v012-policy-successor": {
-          "status": 200
+          "status": 200,
+          "mobile320px": "PASS_NO_HORIZONTAL_OVERFLOW"
         },
         "/release/truss-actions-v012-candidate-successor": {
           "status": 200,
           "candidateStatus": "ADMITTED",
           "activeCandidate": "truss-actions-v012-candidate-successor",
           "gateAddress": "0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b",
+          "mobile320px": "PASS_NO_HORIZONTAL_OVERFLOW",
           "consoleErrors": 0
         }
       },
@@ -78,11 +80,18 @@
         "activeCandidate": "truss-actions-v012-candidate-successor",
         "gateAddress": "0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b",
         "consoleErrors": 0
-      }
+      },
+      "responsiveWidthsPx": [
+        320,
+        390,
+        768,
+        1024,
+        1440
+      ]
     },
-    "sourceCommit": "a041b6b90414b65214cf5fe8c931e70c5541580c",
-    "deploymentCommit": "a041b6b90414b65214cf5fe8c931e70c5541580c",
-    "sourceCommitNote": "This READY deployment was used for the 2026-10-12 closeout smoke. Responsive evidence wrapping was corrected in this source commit. A later documentation-only push may create a new Vercel deployment with identical application code."
+    "sourceCommit": "db6313b3831f102afbb698018a279f939c1ea3d9",
+    "deploymentCommit": "db6313b3831f102afbb698018a279f939c1ea3d9",
+    "sourceCommitNote": "This READY deployment was used for the 2026-10-12 final browser check; includes responsive wrapping and decorative-root overflow clipping. A later documentation-only push can create a newer Vercel deployment with identical application code."
   },
   "previousDeployment": {
     "contract": "0x95800b68742FD083ECaee37FFE93Ad3333C7CF01",
@@ -244,8 +253,8 @@
     "typecheck": "PASS",
     "productionBuild": "PASS with production contract addresses",
     "playwright": "PASS: 18/18",
-    "publicBrowserSmoke": "PASS: production alias, five routes, tested widths 320/390/768/1024/1440; live dossier ADMITTED and acknowledged; no page errors or horizontal overflow",
-    "githubActions": "PASS: https://github.com/Ifem1/truss/actions/runs/38183133088 (master a041b6b90414b65214cf5fe8c931e70c5541580c)"
+    "publicBrowserSmoke": "PASS: production policy/release at 320px, local production build at 320/390/768/1024/1440px, no horizontal overflow; production dossier ADMITTED and acknowledged",
+    "githubActions": "PASS: https://github.com/Ifem1/truss/actions/runs/38184354359 (master db6313b3831f102afbb698018a279f939c1ea3d9)"
   },
   "snapshot": "PRODUCTION_CLOSEOUT_2026-10-12"
 }

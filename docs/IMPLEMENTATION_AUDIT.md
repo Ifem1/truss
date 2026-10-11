@@ -20,7 +20,7 @@
 
 ## Verification
 
-Closeout at source commit `a041b6b90414b65214cf5fe8c931e70c5541580c`: preflight PASS; repository-local GenLayer CLI 0.39.1 PASS; lint and semantic validation PASS for seven contracts; Direct Mode 58/58; unit tests 2/2; TypeScript typecheck PASS; production build PASS; Playwright 18/18. Production browser checks covered five public routes at 320/390/768/1024/1440 px; the live dossier showed the admitted candidate and confirmed acknowledgment, with no page errors or horizontal overflow. GitHub Actions passed on this source commit: [run 38183133088](https://github.com/Ifem1/truss/actions/runs/38183133088).
+Closeout at source commit `db6313b3831f102afbb698018a279f939c1ea3d9`: preflight PASS; repository-local GenLayer CLI 0.39.1 PASS; lint and semantic validation PASS for seven contracts; Direct Mode 58/58; unit tests 2/2; TypeScript typecheck PASS; production build PASS; Playwright 18/18. Production routes and live dossier state were checked in Chrome; the two live detail routes were also measured at 320px. The local production build covered five routes at 320/390/768/1024/1440 px with no horizontal overflow. GitHub Actions passed on this source commit: [run 38184354359](https://github.com/Ifem1/truss/actions/runs/38184354359).
 
 ## Limits and historical findings
 
