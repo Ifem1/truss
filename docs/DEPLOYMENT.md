@@ -11,7 +11,7 @@ Production runs on Studionet chain 61999 and uses the hardened registry and fina
 
 ## Production frontend
 
-The authenticated Vercel project `ifem1s-projects/truss` was updated to the verified registry and gate and deployed READY as [dpl_87pNvnQDH6yAqjnK88qqr2jZt61v](https://vercel.com/ifem1s-projects/truss/deployment/dpl_87pNvnQDH6yAqjnK88qqr2jZt61v), aliased at [truss-gray.vercel.app](https://truss-gray.vercel.app). The public bundle contains the verified pair and no previous contract pair. Routes `/`, `/policy/new`, and `/release/new` render with no contract-configuration error. The app uses injected EIP-1193 wallets, blocks writes outside Studionet 61999, reads real contract state, and checks both transaction finality and successful execution.
+The authenticated Vercel project `ifem1s-projects/truss` was updated to the verified registry and gate and deployed READY as [dpl_5Rni1RXNJheWYehSwhd4HitgFjPb](https://vercel.com/ifem1s-projects/truss/deployment/dpl_5Rni1RXNJheWYehSwhd4HitgFjPb), aliased at [truss-gray.vercel.app](https://truss-gray.vercel.app). The public bundle contains the verified pair and no previous contract pair. Routes `/`, `/policy/new`, and `/release/new` render with no contract-configuration error. The app uses injected EIP-1193 wallets, blocks writes outside Studionet 61999, reads real contract state, and checks both transaction finality and successful execution.
 
 ## Evidence and assurance boundaries
 

@@ -30,8 +30,8 @@
   "frontend": {
     "productionUrl": "https://truss-gray.vercel.app",
     "productionAlias": "https://truss-gray.vercel.app",
-    "deploymentUrl": "https://truss-b3ejoopcb-ifem1s-projects.vercel.app",
-    "vercelDeploymentId": "dpl_87pNvnQDH6yAqjnK88qqr2jZt61v",
+    "deploymentUrl": "https://truss-5ly4a47al-ifem1s-projects.vercel.app",
+    "vercelDeploymentId": "dpl_5Rni1RXNJheWYehSwhd4HitgFjPb",
     "projectName": "truss",
     "projectId": "prj_mYHmZKlGjgyGxKoIAw2W5fjBcQxQ",
     "status": "READY",
@@ -69,7 +69,8 @@
         "gateAddress": "0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b",
         "consoleErrors": 0
       }
-    }
+    },
+    "sourceCommit": "d1f6f62154dccfdb01943eb33dcfa0e550557ac2"
   },
   "previousDeployment": {
     "contract": "0x95800b68742FD083ECaee37FFE93Ad3333C7CF01",
@@ -232,6 +233,6 @@
     "productionBuild": "PASS with production contract addresses",
     "playwright": "PASS: 18/18",
     "publicBrowserSmoke": "PASS: routes and admitted dossier, desktop/mobile, no console errors or horizontal overflow",
-    "githubActions": "PENDING final master commit"
+    "githubActions": "PASS: https://github.com/Ifem1/truss/actions/runs/38177372290 (master d1f6f62154dccfdb01943eb33dcfa0e550557ac2)"
   }
 }
