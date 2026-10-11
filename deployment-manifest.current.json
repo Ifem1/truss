@@ -4,22 +4,16 @@
   "chainId": 61999,
   "rpc": "https://studio.genlayer.com/api",
   "explorer": "https://explorer-studio.genlayer.com",
-  "registry": {
-    "address": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
-    "deploymentTransaction": "0xa5e50ed1a21aac590278d63db1f75ee91693fa8586378714fd14cf7de70ed024",
-    "status": "FINALIZED",
-    "result": "MAJORITY_AGREE",
-    "sourceCommit": "52aca980fe74147efee7b79c3e19652dc2d3bfa7",
-    "sourceSha256": "ec2d9405250bcc1574fdbace7a41d52db8019af50d7c4d31d07d3ccccf1df66d",
-    "deployedSourceSha256": "ec2d9405250bcc1574fdbace7a41d52db8019af50d7c4d31d07d3ccccf1df66d",
-    "sourceByteMatch": true,
-    "repositorySourceStatus": "PRE_ISSUER_HARDENING"
-  },
   "hardenedRepositorySource": {
     "file": "contracts/truss_registry.py",
-    "deploymentStatus": "NOT_DEPLOYED",
-    "reason": "Studionet LATEST_FINAL cross-contract on-chain reads time out in the isolated minimal probe; no speculative activation or replacement deployment was submitted.",
-    "sourceSha256": "830b5769f931f5ea09444f90cc118ec2075cea51325e3369dfb5ce454a0639ee"
+    "deploymentStatus": "DEPLOYED_FINALIZED_BYTE_MATCH",
+    "address": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
+    "deploymentTransaction": "0x4c007779b2c1de93f9cd84d3267c0fe09082a5c29baf63bb640b59e5a0fa9493",
+    "sourceCommit": "e4339d96f2c5908b85bb8eba663dea907ce98dfe",
+    "sourceSha256": "244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1",
+    "deployedSourceSha256": "244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1",
+    "sourceByteMatch": true,
+    "reason": "Deployed and byte-matched; the earlier NOT_DEPLOYED/LATEST_FINAL note is superseded. Finalized messages avoid the synchronous cross-contract LATEST_FINAL path."
   },
   "previousRegistries": [
     {
@@ -37,19 +31,6 @@
       "status": "FINALIZED_SUPERSEDED_NO_GITHUB_REQUEST_HEADERS"
     }
   ],
-  "activationGate": {
-    "address": "0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
-    "deploymentTransaction": "0xc7a7a79da6818459709dfa6b450bd5adecd91a5c98263a272b5ef6a3bb16bf6d",
-    "status": "FINALIZED",
-    "result": "MAJORITY_AGREE",
-    "sourceSha256": "c14b7fe47ae60e1bb4ca03e8e4db97c34da447d65f3b96ed58c2681dbd7893ec",
-    "deployedSourceSha256": "c14b7fe47ae60e1bb4ca03e8e4db97c34da447d65f3b96ed58c2681dbd7893ec",
-    "sourceByteMatch": true,
-    "registryAddress": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
-    "repositorySourceStatus": "MATCHES_CURRENT_GATE_SOURCE",
-    "policyKey": "truss-actions-v012-policy",
-    "policyDigest": "48b758ee118cd93cbbc7d4cdeac05f62ceb7e62eadaf2657bc0d25f2234d44f4"
-  },
   "webAccessProbe": {
     "address": "0xf2E9bD4D3368a718281E6D61A08B04B8F1546620",
     "deploymentTransaction": "0x77d676db1fdde0f6d09c3a5d4318d34bc40def9a170c6a44f8158c9373192788",
@@ -67,15 +48,144 @@
   },
   "policy": {
     "key": "truss-actions-v012-policy",
-    "digest": "48b758ee118cd93cbbc7d4cdeac05f62ceb7e62eadaf2657bc0d25f2234d44f4",
-    "creationTransaction": "0x38927a47be449c996697fc9350f74c92dabf8ce0ea070f23c339169a0bccfaab",
-    "requiredRoles": ["RELEASE_IDENTITY", "TEST_STATUS"],
-    "evidenceSource": "Issuer-committed GitHub REST/Actions response bytes; redirect final origin is not exposed by the SDK",
-    "testStatusAssurance": "ISSUER_COMMITTED_GITHUB_ACTIONS_METADATA_ONLY",
+    "digest": "38055583cb367a31a9ac8ef7daa9c450f6e66271fd4a5920d1f6052127f7a1a5",
+    "creationTransaction": "0xc54ca380a7353abf5eee19710f8aa3b925e49483c5b22a6bbd8c471e801168e0",
+    "requiredRoles": [
+      "RELEASE_IDENTITY",
+      "TEST_STATUS"
+    ],
     "issuerAddress": "0xd6423ae82a975d55c6ceac222827a727325e0459",
-    "walletIndependence": "Owner, publisher, and issuer keys are locally controlled; different addresses do not prove organizational independence."
+    "publisherAddress": "0xa49c51d759790116d451f256654dd9f0549d341f",
+    "evidenceSource": "Issuer-committed GitHub REST/Actions bytes; final redirect origin is not exposed by the SDK",
+    "testStatusAssurance": "ISSUER_COMMITTED_GITHUB_ACTIONS_METADATA_ONLY",
+    "walletIndependence": "Distinct wallet addresses do not establish organizational independence."
   },
-  "currentActionsCycle": {
+  "productionFrontendUpdated": true,
+  "productionReplacementCutover": "NOT_PERFORMED_BLOCKED_CANDIDATE_NOT_ADMITTED_OR_ACTIVATED",
+  "productionDeployment": {
+    "project": "ifem1s-projects/truss",
+    "deploymentId": "dpl_4BmBjXhuVgiBLyffGLD5MFU2Eoqh",
+    "deploymentUrl": "https://truss-igo8oe7ma-ifem1s-projects.vercel.app",
+    "alias": "https://truss-gray.vercel.app",
+    "status": "READY",
+    "registryAddress": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
+    "activationGateAddress": "0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
+    "smokeTestHttpStatus": 200,
+    "bundleAddressVerification": true
+  },
+  "liveLifecycle": {
+    "registryAddress": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
+    "gateAddress": "0xCA9AAa4C18f51e3454ce50dE65c76e52F56C550D",
+    "candidateStatus": "INSUFFICIENT_EVIDENCE",
+    "registryHead": "",
+    "gateActiveCandidate": "",
+    "registryPendingActivation": {},
+    "registryAcknowledgmentHistory": [],
+    "gatePendingAdmission": {},
+    "gatePendingAcknowledgment": {},
+    "activationOutcome": "NOT_SUBMITTED_FROZEN_POLICY_SCOPE_BLOCKER",
+    "productionNegativeProbes": "NOT_SUBMITTED"
+  },
+  "minimalCrossContractProbe": {
+    "status": "HISTORICAL_LATEST_FINAL_FAILURE_AVOIDED_BY_FINALIZED_MESSAGES",
+    "sourceAddress": "0xB786E05f18Ed6B03aa03d5a67Cc9Cb9f96Cf7aDC",
+    "sourceDeploymentTransaction": "0x4fcf143ecde1727a0298024ab13d1f8333d0e090ac3fcceb67b1aa24b128eb77",
+    "callerAddress": "0xc3aB10e75f5a13fA47906C7B8B9d81298a64e68a",
+    "callerDeploymentTransaction": "0xd9bf4d57d8532a3887c8530589c4817f94de23a28d834e941d381550e8c6aa52",
+    "basicView": "PASS",
+    "latestFinalView": "RPC_HTML_NOT_JSON",
+    "onChainWriteTransaction": "0xdef55aee14fd4ee26cabfe88fdfd329a29cf871de28f941f20014ff9a830b137",
+    "onChainWrite": "FINALIZED_NO_MAJORITY_LEADER_EXEC_TIMEOUT_600_SECONDS",
+    "canonicalConsumedMarker": "",
+    "hostedGenvmVersion": "not exposed by receipt",
+    "cliVersion": "0.39.1",
+    "localLintGenVmVersion": "v0.3.0-rc7",
+    "note": "Preserved historical reproduction only. The current registry-to-gate architecture uses finalized messages; the successful throwaway lifecycle demonstrates that mechanism. This old synchronous-call failure is not claimed fixed."
+  },
+  "runtimeIssue": "https://github.com/genlayerlabs/genvm-manager/issues/60",
+  "note": "The hardened production-authority registry and gate are deployed and byte-matched. The production candidate remains INSUFFICIENT_EVIDENCE because its frozen policy does not allow the annotated tag-object evidence path required for retry. The existing public frontend remains on the legacy registry/gate pair; no cutover or production activation occurred. A separate throwaway lineage proves the finalized-message mechanism only.",
+  "snapshot": "RECONCILED_2026-10-11_FROZEN_POLICY_SCOPE_BLOCKER",
+  "productionAuthorityPair": {
+    "network": "Studionet",
+    "chainId": 61999,
+    "registry": {
+      "file": "contracts/truss_registry.py",
+      "deploymentStatus": "DEPLOYED_FINALIZED_BYTE_MATCH",
+      "address": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
+      "deploymentTransaction": "0x4c007779b2c1de93f9cd84d3267c0fe09082a5c29baf63bb640b59e5a0fa9493",
+      "sourceCommit": "e4339d96f2c5908b85bb8eba663dea907ce98dfe",
+      "sourceSha256": "244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1",
+      "deployedSourceSha256": "244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1",
+      "sourceByteMatch": true
+    },
+    "activationGate": {
+      "address": "0xCA9AAa4C18f51e3454ce50dE65c76e52F56C550D",
+      "deploymentTransaction": "0xb502379a0efd85e6b0022200d879399bdb8605d59c17934989d65d69a50f67c0",
+      "sourceSha256": "3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218",
+      "deployedSourceSha256": "3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218",
+      "sourceByteMatch": true,
+      "configuration": {
+        "registry": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
+        "lineageKey": "truss-actions-demo-20261009",
+        "operator": "0xa49c51d759790116d451f256654dd9f0549d341f",
+        "policyDigest": "38055583cb367a31a9ac8ef7daa9c450f6e66271fd4a5920d1f6052127f7a1a5"
+      }
+    },
+    "policy": {
+      "key": "truss-actions-v012-policy",
+      "digest": "38055583cb367a31a9ac8ef7daa9c450f6e66271fd4a5920d1f6052127f7a1a5",
+      "publisher": "0xa49c51d759790116d451f256654dd9f0549d341f",
+      "issuer": "0xd6423ae82a975d55c6ceac222827a727325e0459",
+      "releaseIdentityAllowedPath": "/repos/Ifem1/truss/git/ref/tags/",
+      "requiredTagObjectPath": "/repos/Ifem1/truss/git/tags/c10939d6449a107dfd84de2981d69dc8727d6822"
+    },
+    "candidate": {
+      "key": "truss-actions-v012-candidate",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "roundsUsed": 1,
+      "roundLimit": 3,
+      "assessmentAttemptsUsed": 1,
+      "assessmentAttemptLimit": 3,
+      "technicallyRetryable": true,
+      "blocker": "Required annotated tag-object URL is outside the frozen RELEASE_IDENTITY path scope; _evidence rejects this URL."
+    },
+    "canonicalState": {
+      "admittedHead": "",
+      "pendingActivation": {},
+      "acknowledgmentHistory": [],
+      "gateActiveCandidate": "",
+      "gateActivationHistory": [],
+      "gatePendingAdmission": {},
+      "gatePendingAcknowledgment": {}
+    },
+    "status": "BLOCKED_FROZEN_POLICY_EVIDENCE_SCOPE"
+  },
+  "notes": "The previously recorded LATEST_FINAL synchronous-call timeouts are historical and are avoided by finalized messages. A separate throwaway lineage proves the message lifecycle but is not the production candidate or authority.",
+  "legacyFrontendRegistry": {
+    "address": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
+    "deploymentTransaction": "0xa5e50ed1a21aac590278d63db1f75ee91693fa8586378714fd14cf7de70ed024",
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "sourceCommit": "52aca980fe74147efee7b79c3e19652dc2d3bfa7",
+    "sourceSha256": "ec2d9405250bcc1574fdbace7a41d52db8019af50d7c4d31d07d3ccccf1df66d",
+    "deployedSourceSha256": "ec2d9405250bcc1574fdbace7a41d52db8019af50d7c4d31d07d3ccccf1df66d",
+    "sourceByteMatch": true,
+    "repositorySourceStatus": "PRE_ISSUER_HARDENING"
+  },
+  "legacyFrontendGate": {
+    "address": "0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
+    "deploymentTransaction": "0xc7a7a79da6818459709dfa6b450bd5adecd91a5c98263a272b5ef6a3bb16bf6d",
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "sourceSha256": "c14b7fe47ae60e1bb4ca03e8e4db97c34da447d65f3b96ed58c2681dbd7893ec",
+    "deployedSourceSha256": "c14b7fe47ae60e1bb4ca03e8e4db97c34da447d65f3b96ed58c2681dbd7893ec",
+    "sourceByteMatch": true,
+    "registryAddress": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
+    "repositorySourceStatus": "MATCHES_CURRENT_GATE_SOURCE",
+    "policyKey": "truss-actions-v012-policy",
+    "policyDigest": "48b758ee118cd93cbbc7d4cdeac05f62ceb7e62eadaf2657bc0d25f2234d44f4"
+  },
+  "historicalLegacyActionsCycle": {
     "status": "ADMITTED_ACTIVATION_PENDING",
     "repository": "Ifem1/truss",
     "releaseLabel": "v0.1.2-actions-proof",
@@ -133,52 +243,29 @@
     ],
     "activated": false
   },
-  "productionFrontendUpdated": true,
-  "productionReplacementCutover": "BLOCKED_PENDING_MINIMAL_LATEST_FINAL_PROBE_SUCCESS",
-  "productionDeployment": {
-    "project": "ifem1s-projects/truss",
-    "deploymentId": "dpl_4BmBjXhuVgiBLyffGLD5MFU2Eoqh",
-    "deploymentUrl": "https://truss-igo8oe7ma-ifem1s-projects.vercel.app",
-    "alias": "https://truss-gray.vercel.app",
-    "status": "READY",
-    "registryAddress": "0x83A62a8bE7a4f249D76f8c0b644cC9d4D8110c0f",
-    "activationGateAddress": "0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
-    "smokeTestHttpStatus": 200,
-    "bundleAddressVerification": true
+  "registry": {
+    "address": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
+    "deploymentTransaction": "0x4c007779b2c1de93f9cd84d3267c0fe09082a5c29baf63bb640b59e5a0fa9493",
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "sourceCommit": "e4339d96f2c5908b85bb8eba663dea907ce98dfe",
+    "sourceSha256": "244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1",
+    "deployedSourceSha256": "244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1",
+    "sourceByteMatch": true
   },
-  "liveLifecycle": {
-    "registryHeadRead": "truss-actions-v012-candidate",
-    "candidateStatusRead": "ADMITTED",
-    "gateActiveCandidateRead": "",
-    "gateActivationHistoryRead": [],
-    "activationOutcome": "NO_MAJORITY_LEADER_TIMEOUT",
-    "liveInvalidCandidateProbeOutcome": "NO_MAJORITY_LEADER_TIMEOUT_NOT_A_CONTRACT_REJECTION",
-    "canonicalPostTransactionRead": {
-      "source": "https://explorer-studio.genlayer.com/address/0x07D9C48552AAAd1aF495605476a7BFa2f6D09Fb6",
-      "method": "get_active_candidate",
-      "result": "",
-      "activationHistoryMethod": "get_activation_history_json",
-      "activationHistoryResult": []
-    },
-    "traceRpcSupported": false,
-    "appealBondCalculationSupported": false,
-    "status": "BLOCKED_MINIMAL_CROSS_CONTRACT_WRITE_TIMEOUT"
+  "activationGate": {
+    "address": "0xCA9AAa4C18f51e3454ce50dE65c76e52F56C550D",
+    "deploymentTransaction": "0xb502379a0efd85e6b0022200d879399bdb8605d59c17934989d65d69a50f67c0",
+    "status": "FINALIZED",
+    "result": "MAJORITY_AGREE",
+    "sourceSha256": "3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218",
+    "deployedSourceSha256": "3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218",
+    "sourceByteMatch": true,
+    "registryAddress": "0x20193443d1E429e4984B118FF54DC77547b0fBCB",
+    "lineageKey": "truss-actions-demo-20261009",
+    "policyKey": "truss-actions-v012-policy",
+    "policyDigest": "38055583cb367a31a9ac8ef7daa9c450f6e66271fd4a5920d1f6052127f7a1a5",
+    "operator": "0xa49c51d759790116d451f256654dd9f0549d341f"
   },
-  "minimalCrossContractProbe": {
-    "status": "BLOCKED_STUDIONET_GENVM_LEADER_TIMEOUT",
-    "sourceAddress": "0xB786E05f18Ed6B03aa03d5a67Cc9Cb9f96Cf7aDC",
-    "sourceDeploymentTransaction": "0x4fcf143ecde1727a0298024ab13d1f8333d0e090ac3fcceb67b1aa24b128eb77",
-    "callerAddress": "0xc3aB10e75f5a13fA47906C7B8B9d81298a64e68a",
-    "callerDeploymentTransaction": "0xd9bf4d57d8532a3887c8530589c4817f94de23a28d834e941d381550e8c6aa52",
-    "basicView": "PASS",
-    "latestFinalView": "RPC_HTML_NOT_JSON",
-    "onChainWriteTransaction": "0xdef55aee14fd4ee26cabfe88fdfd329a29cf871de28f941f20014ff9a830b137",
-    "onChainWrite": "FINALIZED_NO_MAJORITY_LEADER_EXEC_TIMEOUT_600_SECONDS",
-    "canonicalConsumedMarker": "",
-    "hostedGenvmVersion": "not exposed by receipt",
-    "cliVersion": "0.39.1",
-    "localLintGenVmVersion": "v0.3.0-rc7"
-  },
-  "runtimeIssue": "https://github.com/genlayerlabs/genvm-manager/issues/60",
-  "note": "Production remains on the previously deployed registry and activation gate. The deployed registry is pre-issuer-hardening; the deployed gate source matches the current gate. Canonical reads confirm an admitted registry head but an empty gate state. Three activation transactions and the invalid-candidate probe finalized NO_MAJORITY after leader execution timed out at 600 seconds. The negative-path call did not reach TRUSS contract rejection. The hardened repository registry is not deployed, and successful gate lifecycle enforcement is not proven complete."
+  "legacyFrontendPairStatus": "This pair remains active in the public Vercel bundle but is not the hardened production-authority pair; it remains unchanged until the hardened production candidate is admitted and activated."
 }

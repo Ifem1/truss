@@ -78,7 +78,7 @@
     "status": "DEPLOYED_FINALIZED_BYTE_MATCH"
   },
   "replacementLifecycle": {
-    "status": "INCOMPLETE_ADMISSION_NOT_YET_FINALIZED",
+    "status": "BLOCKED_FROZEN_POLICY_EVIDENCE_SCOPE",
     "policyKey": "truss-actions-v012-policy",
     "policyDigest": "38055583cb367a31a9ac8ef7daa9c450f6e66271fd4a5920d1f6052127f7a1a5",
     "policyTransaction": "0xc54ca380a7353abf5eee19710f8aa3b925e49483c5b22a6bbd8c471e801168e0",
@@ -90,7 +90,16 @@
     "retryEvidence": {
       "tagObjectUrl": "https://api.github.com/repos/Ifem1/truss/git/tags/c10939d6449a107dfd84de2981d69dc8727d6822",
       "tagObjectSha256": "ee9b1cfe368d74405d16b57f6f212933d57f7f4a7095168ece122b603a495f72",
-      "resolvedCommit": "52aca980fe74147efee7b79c3e19652dc2d3bfa7"
+      "resolvedCommit": "52aca980fe74147efee7b79c3e19652dc2d3bfa7",
+      "tagRefUrl": "https://api.github.com/repos/Ifem1/truss/git/ref/tags/v0.1.2-actions-proof",
+      "tagRefSha256": "6802868ecd310226c319848178bcbf9b7a054ba4f8554cc49d7320be21369faa",
+      "actionsRunUrl": "https://api.github.com/repos/Ifem1/truss/actions/runs/37973817856",
+      "actionsRunSha256": "83cf037524760922a46a365f45c311114da504ee41a6a2efea04646fb39b8567",
+      "actionsRunStatus": "completed",
+      "actionsRunConclusion": "success",
+      "actionsRunEvent": "push",
+      "actionsRunHeadSha": "52aca980fe74147efee7b79c3e19652dc2d3bfa7",
+      "actionsRunPath": ".github/workflows/ci.yml"
     },
     "unauthorizedOperatorProbe": {
       "transaction": "0x26c8cfef561df278f98a20745b4ec9918ea890e81cbaa9f1392b09b12f2fa903",
@@ -103,7 +112,20 @@
         "pendingAcknowledgment": {}
       }
     },
-    "productionCutover": "NOT_PERFORMED"
+    "productionCutover": "NOT_PERFORMED_BLOCKED_CANDIDATE_NOT_ADMITTED_OR_ACTIVATED",
+    "blocker": {
+      "candidateStatus": "INSUFFICIENT_EVIDENCE",
+      "roundsUsed": 1,
+      "roundLimit": 3,
+      "assessmentAttemptsUsed": 1,
+      "assessmentAttemptLimit": 3,
+      "releaseIdentityAllowedPath": "/repos/Ifem1/truss/git/ref/tags/",
+      "requiredTagObjectUrl": "https://api.github.com/repos/Ifem1/truss/git/tags/c10939d6449a107dfd84de2981d69dc8727d6822",
+      "requiredTagObjectPathOutsideFrozenScope": true,
+      "contractValidation": "_evidence rejects evidence URLs outside the frozen role scope",
+      "signerAvailability": "Designated publisher and issuer are locally unlocked and funded",
+      "productionRetrySubmitted": false
+    }
   },
   "throwawayLifecycle": {
     "status": "COMPLETE_TEST_ONLY_PRODUCTION_UNCHANGED",
@@ -145,5 +167,6 @@
       "signedGitTag": "UNSIGNED"
     },
     "explorer": "https://explorer-studio.genlayer.com"
-  }
+  },
+  "productionFrontendNote": "The existing public frontend remains on the legacy production registry/gate pair until the hardened production-lineage lifecycle is admitted, activated and acknowledged. No cutover occurred."
 }
