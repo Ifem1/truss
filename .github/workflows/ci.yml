@@ -46,10 +46,12 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: ${{ runner.temp }}/truss-source.tar.gz
-      - name: Retain verification bundle
+      - name: Retain source archive and verification bundle
         uses: actions/upload-artifact@v4
         with:
           name: truss-source-attestation-${{ github.sha }}
-          path: ${{ steps.attest.outputs.bundle-path }}
+          path: |
+            ${{ steps.attest.outputs.bundle-path }}
+            ${{ runner.temp }}/truss-source.tar.gz
           if-no-files-found: error
           retention-days: 90

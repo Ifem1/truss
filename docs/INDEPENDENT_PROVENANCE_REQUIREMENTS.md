@@ -8,12 +8,14 @@ The verifier intentionally requires all of these facts before an authenticated a
 
 ## GitHub build provenance now produced by CI
 
-After the complete `verify` job succeeds on a push to `master`, `.github/workflows/ci.yml` archives the exact pushed Git tree and creates a GitHub artifact attestation for that archive. GitHub signs the attestation through its Actions OIDC/Sigstore flow, and the job retains the bundle as a workflow artifact. Pull requests do not receive signing permissions. This makes the source archive digest and GitHub workflow identity independently checkable, and a redirect cannot substitute different bytes without invalidating the subject digest.
+After the complete `verify` job succeeds on a push to `master`, `.github/workflows/ci.yml` archives the exact pushed Git tree and creates a GitHub artifact attestation for that archive. GitHub signs the attestation through its Actions OIDC/Sigstore flow, and the job retains both the exact archive bytes and the bundle as a workflow artifact. Pull requests do not receive signing permissions. This makes the source archive digest and GitHub workflow identity independently checkable, and a redirect cannot substitute different bytes without invalidating the subject digest.
 
-To verify a downloaded archive and its bundle with GitHub CLI, use the repository and signer workflow constraints (do not omit them):
+Download the named artifact from the run for the commit being reviewed, then verify the retained archive with GitHub CLI. Keep the repository and signer workflow constraints (do not omit them):
 
 ```sh
-gh attestation verify truss-source.tar.gz \
+gh run download <run-id> --repo Ifem1/truss \
+  --name truss-source-attestation-<full-commit-sha> --dir evidence
+gh attestation verify evidence/truss-source.tar.gz \
   --repo Ifem1/truss \
   --signer-workflow Ifem1/truss/.github/workflows/ci.yml \
   --format json
