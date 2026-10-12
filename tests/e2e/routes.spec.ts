@@ -127,11 +127,22 @@ test("policy form is reachable", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /set the standard before the release/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /add criterion/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /release identity/i })).toBeVisible();
-  await expect(page.getByText(/separate issuer wallets and SHA-256 commitments do not prove public identity/i)).toBeVisible();
-  await expect(page.getByText(/issuer-bound assessments remain fail-closed/i)).toBeVisible();
+  await expect(page.getByText(/distinct issuer wallets prove wallet control and content commitments only/i)).toBeVisible();
   await page.getByLabel("Repository owner").fill("Ifem1");
   await page.getByLabel("Repository name").fill("truss");
   await expect(page.getByText(/all three evidence URLs are covered/i)).toBeVisible();
+});
+
+test("signed-manifest policy mode freezes an RSA key and exact repository release scopes", async ({ page }) => {
+  await page.goto("/policy/new");
+  await page.getByLabel("Repository owner").fill("Ifem1");
+  await page.getByLabel("Repository name").fill("truss");
+  await page.getByLabel("Use policy-authorized RSA-SHA256 signed release manifests").check();
+  await expect(page.getByLabel("GitHub repository numeric ID")).toHaveValue("1407596595");
+  await expect(page.getByLabel("PROVENANCE, required")).toBeVisible();
+  await expect(page.getByText(/fingerprint alone does not prove the signer is a separate person or organization/i)).toBeVisible();
+  await expect(page.getByText(/signed-manifest release and download scopes match this repository/i)).toBeVisible();
+  await expect(page.getByText(/contract verifies the RSA manifest, not Sigstore/i)).toBeVisible();
 });
 
 test("policy publication blocks a structured tag-object URL outside the frozen role scope", async ({ page }) => {

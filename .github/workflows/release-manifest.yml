@@ -1,0 +1,74 @@
+name: Signed release manifest
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing annotated release tag whose exact commit has passing CI
+        required: true
+        type: string
+permissions:
+  actions: read
+  contents: write
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+jobs:
+  sign-release:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare source archive and policy-key-signed manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRUSS_RELEASE_TAG: ${{ inputs.tag }}
+          TRUSS_RELEASE_OUTPUT: ${{ runner.temp }}/truss-release
+          TRUSS_RELEASE_SIGNING_KEY_B64: ${{ secrets.TRUSS_RELEASE_SIGNING_KEY_B64 }}
+        run: node scripts/create-signed-release-manifest.mjs
+      - name: Attest exact release archive with GitHub Sigstore
+        id: attest
+        uses: actions/attest@v4
+        with:
+          subject-path: ${{ runner.temp }}/truss-release/truss-source.tar.gz
+      - name: Verify attestation with GitHub CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGSTORE_BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          gh attestation verify "$RUNNER_TEMP/truss-release/truss-source.tar.gz" \
+            --bundle "$SIGSTORE_BUNDLE" \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release-manifest.yml" \
+            --source-ref refs/heads/master \
+            --format json > "$RUNNER_TEMP/truss-release/sigstore-verification.json"
+      - name: Publish manifest, archive, public key and Sigstore bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRUSS_RELEASE_TAG: ${{ inputs.tag }}
+          SIGSTORE_BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TRUSS_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TRUSS_RELEASE_TAG" \
+              "$RUNNER_TEMP/truss-release/release-manifest.json" \
+              "$RUNNER_TEMP/truss-release/truss-source.tar.gz" \
+              "$RUNNER_TEMP/truss-release/signer-public-key.json" \
+              "$RUNNER_TEMP/truss-release/sigstore-verification.json" \
+              "$SIGSTORE_BUNDLE" \
+              --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TRUSS_RELEASE_TAG" \
+              "$RUNNER_TEMP/truss-release/release-manifest.json" \
+              "$RUNNER_TEMP/truss-release/truss-source.tar.gz" \
+              "$RUNNER_TEMP/truss-release/signer-public-key.json" \
+              "$RUNNER_TEMP/truss-release/sigstore-verification.json" \
+              "$SIGSTORE_BUNDLE" \
+              --repo "$GITHUB_REPOSITORY" --verify-tag \
+              --title "$TRUSS_RELEASE_TAG" \
+              --notes "TRUSS release archive, policy-authorized RSA-signed manifest, and supplementary GitHub Sigstore provenance."
+          fi

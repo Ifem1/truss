@@ -1,6 +1,8 @@
 # Final Steward More Info Closeout
 
-**Status: BLOCKED — authenticated admission is not implemented or demonstrated.** This closeout records the verified GitHub build provenance and the exact remaining contract/runtime gap. It does not present the historical production lifecycle or a successful CI run as proof of authenticated on-chain admission.
+> **Status update (2026-10-13):** The historical sections below describe the previous Sigstore-only verifier investigation and are not the current source status. Current source adds an RFC 8017 RSA-SHA256 signed-manifest path; its isolated verifier and full Direct Mode admission/forgery tests pass. It is not deployed and has no live StudioNet lifecycle evidence. The RSA key fingerprint is not a real-world identity credential, and signed CI fields are claims by that key, not independently verified GitHub facts. See [SIGNED_RELEASE_MANIFEST.md](SIGNED_RELEASE_MANIFEST.md). Existing deployed contracts and production configuration remain unchanged.
+
+**Status: Direct Mode implementation PASS; deployed/live enforcement NOT PROVEN.** The RSA manifest path is implemented in current source and has a positive and negative Direct Mode assessment test. This doc's older Sigstore-only run and deployment details below are historical. No signer-controlled live manifest, successor deployment, or StudioNet lifecycle has yet been performed.
 
 ## 1. Authentic release evidence
 
@@ -40,7 +42,7 @@ This is build provenance. It does not establish an independent human reviewer, o
 
 ## 2. Contract-side Sigstore verification
 
-**BLOCKED — no verified bundle acceptance path exists in the pinned GenVM contract environment.** The deployed registry and current source do not parse and authenticate Sigstore DSSE bundles, verify the Fulcio certificate identity and chain, verify the Rekor inclusion proof/checkpoint, or bind those verified claims to the frozen candidate. The current provenance gate therefore continues to mark issuer-bound evidence `UNVERIFIED` and prevent authenticated admission.
+**Sigstore is not verified inside the contract.** Neither deployed registry nor current source parses and authenticates Sigstore DSSE bundles, verifies the Fulcio certificate identity and chain, verifies Rekor inclusion proof/checkpoint, or binds those Sigstore claims to the candidate. Current source instead has a separate RSA signed-manifest path; it authenticates content against a key frozen in policy and is explicitly not represented as on-chain Sigstore verification. Legacy policies continue to fail closed on their unauthenticated provenance path.
 
 Runtime checks used repository-local GenLayer CLI 0.39.1 and the contract runner pinned in the source header (`py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6`, lint environment `GENVM_VERSION=v0.3.0-rc7`). A temporary contract probe using `genvm-lint check` produced:
 
@@ -48,7 +50,7 @@ Runtime checks used repository-local GenLayer CLI 0.39.1 and the contract runner
 - With that import removed, `Import error: No module named 'ecdsa'`
 - `hashlib`, `base64`, `json` and `ssl` imports passed contract validation, but the runtime exposes no supported X.509/Sigstore certificate-chain or ECDSA verification API through those imports.
 
-These checks show that common cryptographic verification packages are absent from the pinned contract dependency; they do not prove pure-Python verification is mathematically impossible. No custom ASN.1, P-256, Fulcio chain, Rekor checkpoint or inclusion-proof implementation was added. Shipping an unreviewed cryptographic reimplementation would not be a safe substitute. A sound completion path is a reviewed deterministic verifier supported by GenVM (native runner primitive or audited contract-compatible implementation) that validates DSSE signature, trusted workflow identity, subject/repository/commit/tag binding, certificate validity and transparency evidence against pinned trust roots. Any such path must pass genuine-bundle and tampering tests in Direct Mode and the pinned runner before deployment.
+These checks showed common verification packages were absent from the pinned contract dependency. The current compact RSA verifier uses only supported deterministic primitives (`hashlib`, integer conversion and `pow`) and passes GenVM Direct Mode RFC 8017 vectors; it does not implement ASN.1, P-256, Fulcio chains, Rekor checkpoints or inclusion proofs. Its scope and unaudited status are documented in [SIGNED_RELEASE_MANIFEST.md](SIGNED_RELEASE_MANIFEST.md).
 
 The GitHub CLI verification performed off chain is not passed to the contract as a `verified: true` flag and is not counted as enforcement.
 
@@ -66,11 +68,11 @@ No signer controlled by the repository is called independent of the publisher or
 
 **No fresh authenticated lifecycle was submitted.** There is no new policy, candidate assessment, admission message, activation, acknowledgment, or negative-path transaction for this Sigstore evidence. The historical deployed registry remains `0x20193443d1E429e4984B118FF54DC77547b0fBCB` (source SHA-256 `244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1`) and the production gate remains `0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b` (source SHA-256 `3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218`). They are historical deployed implementations and do not contain this bundle verifier. No deployment, production policy change, or frontend cutover was made.
 
-The throwaway and historical wallet-attested lifecycles remain supporting historical evidence only. They do not prove that the current registry authenticates a GitHub Sigstore bundle or that a new candidate can be admitted on that basis.
+The throwaway and historical wallet-attested lifecycles remain supporting historical evidence only. They do not prove that deployed contracts authenticate an RSA manifest or Sigstore bundle, or that a new candidate can be admitted under the new policy path.
 
 ## 5. Tests and CI
 
-Verified for source snapshot `2a195c52bd60ceda522b1988874585169c0e9d90`:
+Historical verification for source snapshot `2a195c52bd60ceda522b1988874585169c0e9d90`:
 
 - `npm run preflight` — PASS
 - `npm run cli:version` — PASS, 0.39.1
@@ -87,9 +89,9 @@ These results prove CI and source provenance for that snapshot. They do not prov
 
 ## 6. Required remaining work
 
-1. Add or enable a reviewed Sigstore verification implementation in the pinned GenVM environment; verify valid, altered, wrong-repository, wrong-commit, wrong-ref, expired and untrusted bundles deterministically.
-2. Create a version-tagged release only after the verifier is tested, attest the exact release artifact/manifest, and preserve its bundle and trust-root snapshot.
-3. Deploy a successor registry/gate pair only after byte-verified source and tests pass; retain existing deployed contracts as historical records.
+1. Complete an authenticated source release with a populated signing secret and verify the signed archive bundle using GitHub CLI.
+2. Obtain or provision the policy-authorized RSA key under the intended custody model and create the successor policy with its public key frozen.
+3. Only after full tests and policy/evidence verification, deploy a successor registry/gate pair as needed; retain existing contracts and records unchanged.
 4. Prove a genuine finalized `ADMITTED` result, finalized gate activation/acknowledgment, and actual contract-level rejection paths on StudioNet 61999. Confirm canonical post-state.
 
-Until those gates pass, issuer-bound authenticated admission remains fail-closed and the requested production outcome is **not complete**. No test wallet, API JSON field, model judgment, wallet digest or off-chain approval flag may bypass this state.
+Until those gates pass, only the local Direct Mode path is demonstrated; production outcome is **not complete**. No test wallet, API JSON field, model judgment, wallet digest, or off-chain approval flag may bypass this state.
