@@ -127,6 +127,8 @@ test("policy form is reachable", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /set the standard before the release/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /add criterion/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /release identity/i })).toBeVisible();
+  await expect(page.getByText(/separate issuer wallets and SHA-256 commitments do not prove public identity/i)).toBeVisible();
+  await expect(page.getByText(/issuer-bound assessments remain fail-closed/i)).toBeVisible();
   await page.getByLabel("Repository owner").fill("Ifem1");
   await page.getByLabel("Repository name").fill("truss");
   await expect(page.getByText(/all three evidence URLs are covered/i)).toBeVisible();

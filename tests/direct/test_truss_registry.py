@@ -76,7 +76,7 @@ def admit_issuer_candidate(vm, c, policy_key="activation-policy", candidate_key=
                            release_label="v9.1.0", commit="a" * 40):
     tag_url = f"https://api.github.com/repos/Ifem1/fixture/git/ref/tags/{release_label}"
     run_url = ISSUER_TESTS
-    c.create_policy_with_issuers(
+    c.create_policy(
         policy_key, c._test_lineage_key, "TRUSS fixture", "Ifem1", "fixture",
         "This synthetic fixture exercises finalized admission delivery through a frozen gate.",
         "Admission requires canonical repository tag and Actions run metadata bound to this exact commit.",
@@ -84,23 +84,18 @@ def admit_issuer_candidate(vm, c, policy_key="activation-policy", candidate_key=
         json.dumps(["RELEASE_IDENTITY", "TEST_STATUS"]),
         json.dumps({"RELEASE_IDENTITY":["api.github.com|/repos/Ifem1/fixture/git/ref/tags/"],
                     "TEST_STATUS":["api.github.com|/repos/Ifem1/fixture/actions/runs/"]}),
-        c._test_policy_key, "0x" + "22" * 20,
-        json.dumps({"RELEASE_IDENTITY":"0x" + "33" * 20,"TEST_STATUS":"0x" + "33" * 20}),
+        c._test_policy_key,
     )
     c.configure_activation_gate(policy_key, "0x" + "aa" * 20)
     evidence = json.dumps([{"role":"RELEASE_IDENTITY","url":tag_url},
                            {"role":"TEST_STATUS","url":run_url}])
-    vm.sender = bytes.fromhex("22" * 20)
+    vm.sender = bytes.fromhex("11" * 20)
     c.open_candidate(candidate_key, policy_key, release_label, commit, "", evidence)
     tag_body = json.dumps({"ref":f"refs/tags/{release_label}","object":{"type":"commit","sha":commit}})
     actions_body = json.dumps({"id":12345,"status":"completed","conclusion":"success","head_sha":commit,
                                "repository":{"full_name":"Ifem1/fixture"},
                                "path":".github/workflows/ci.yml","event":"push"})
-    vm.sender = bytes.fromhex("33" * 20)
-    c.attest_evidence(candidate_key, "RELEASE_IDENTITY", tag_url, hashlib.sha256(tag_body.encode()).hexdigest())
-    c.attest_evidence(candidate_key, "TEST_STATUS", run_url, hashlib.sha256(actions_body.encode()).hexdigest())
-    vm.sender = bytes.fromhex("44" * 20)
-    c.seal_candidate(candidate_key)
+    vm.sender = bytes.fromhex("11" * 20)
     result = response()
     result["evidence_states"] = [
         {"url":tag_url,"state":"SUPPORTS","finding":"Canonical release tag fixture."},
@@ -112,9 +107,10 @@ def admit_issuer_candidate(vm, c, policy_key="activation-policy", candidate_key=
     vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/ref/tags/.*", {"status":200,"body":tag_body})
     vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/actions/runs/12345", {"status":200,"body":actions_body})
     vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/commits/.*", {"status":200,"body":json.dumps({"sha":commit})})
-    vm.sender = bytes.fromhex("44" * 20)
+    vm.sender = bytes.fromhex("11" * 20)
     assessment = c.assess_candidate(candidate_key)
-    assert assessment["verdict"] == "ADMITTED"
+    assert assessment["verdict"] == "INSUFFICIENT_EVIDENCE"
+    assert c.get_admitted_head(c._test_lineage_key) == ""
     return assessment
 
 
@@ -293,6 +289,9 @@ def test_designated_issuer_commitments_bind_the_sealed_round(direct_vm, direct_d
     assert state["sealed_evidence_rounds"] == [1]
     assert len(state["evidence_attestations"]) == 2
     issuer_result = response()
+    issuer_result["authenticated_admission"] = True
+    issuer_result["provenance_checks"] = {"signed_release_or_attestation_verified": True,
+                                          "independent_issuer_credential_verified": True}
     issuer_result["evidence_states"] = [
         {"url": ref_url, "state": "SUPPORTS", "finding": "Issuer-committed canonical release tag metadata."},
         {"url": ISSUER_TESTS, "state": "SUPPORTS", "finding": "Issuer-committed Actions run metadata."},
@@ -300,7 +299,12 @@ def test_designated_issuer_commitments_bind_the_sealed_round(direct_vm, direct_d
     mock_assessment(direct_vm, issuer_result, body=body)
     direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/ref/tags/v1", {"status": 200, "body": body})
     direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/actions/runs/12345", {"status": 200, "body": action_body})
-    assert c.assess_candidate("issuer-candidate")["verdict"] == "ADMITTED"
+    rejected = c.assess_candidate("issuer-candidate")
+    assert rejected["verdict"] == "INSUFFICIENT_EVIDENCE"
+    assert rejected["identity_match"] == "UNVERIFIED"
+    assert rejected["authenticated_admission"] is False
+    assert json.loads(c.get_pending_activation_json(c._test_lineage_key)) == {}
+    assert c.get_admitted_head(c._test_lineage_key) == ""
     assert direct_vm.run_validator() is True
     mock_assessment(direct_vm, issuer_result, body=body)
     direct_vm.mock_web(r".*api\.github\.com/repos/Ifem1/fixture/git/ref/tags/v1", {"status": 200, "body": json.dumps({"ref":"refs/tags/v1","object":{"type":"commit","sha":"b"*40}})})
@@ -456,10 +460,10 @@ def test_github_requests_use_supported_headers_and_actions_run_is_commit_bound(d
     commitments = {ref_url: hashlib.sha256(ref_body.encode()).hexdigest(),
                    api_url: hashlib.sha256(actions_body.encode()).hexdigest()}
     provenance = c._github_provenance(policy, candidate, evidence, commitments)
-    assert c._provenance_satisfied(provenance)
+    assert not c._provenance_satisfied(provenance)
     assessment = c._apply_provenance_result({"identity_match":"MATCH", "identity_finding":"stale model text"}, provenance)
-    assert assessment["identity_match"] == "MATCH"
-    assert assessment["identity_finding"] == "Canonical repository tag and commit match the candidate."
+    assert assessment["identity_match"] == "UNVERIFIED"
+    assert assessment["authenticated_admission"] is False
     direct_vm.clear_mocks()
     direct_vm.mock_web(r".*/repos/Ifem1/truss/git/ref/tags/v1.0.0", {"status": 200, "body": ref_body})
     failed_body = json.dumps({
@@ -471,7 +475,7 @@ def test_github_requests_use_supported_headers_and_actions_run_is_commit_bound(d
     assert not c._provenance_satisfied(failed)
     assessment = c._apply_provenance_result({"identity_match":"MATCH", "identity_finding":"model text"}, failed)
     assert assessment["identity_match"] == "UNVERIFIED"
-    assert "could not be verified" in assessment["identity_finding"]
+    assert "Independent release authenticity is unverified" in assessment["identity_finding"]
 
 
 def test_annotated_github_tag_requires_committed_tag_object(direct_vm, direct_deploy):
@@ -501,7 +505,7 @@ def test_annotated_github_tag_requires_committed_tag_object(direct_vm, direct_de
     provenance = c._github_provenance(policy, candidate, evidence, commitments)
     assert provenance["annotated_tag"] is True
     assert provenance["tag_resolves_to_commit"] is True
-    assert c._provenance_satisfied(provenance)
+    assert not c._provenance_satisfied(provenance)
     commitments.pop(tag_url)
     assert not c._provenance_satisfied(c._github_provenance(policy, candidate, evidence, commitments))
 
@@ -766,53 +770,19 @@ def test_activation_gate_binding_is_owner_configured_and_frozen(direct_vm, direc
     assert c.activation_gate_policy_digest_by_policy.get(c._test_policy_key) == policy["policy_digest"]
 
 
-def test_pending_activation_blocks_new_admission_and_requires_finalized_gate_ack(direct_vm, direct_deploy):
+def test_unverified_evidence_cannot_create_pending_activation_or_advance_head(direct_vm, direct_deploy):
     c = setup(direct_vm, direct_deploy)
     policy_key = "activation-policy"
     candidate_key = "activation-candidate"
     result = admit_issuer_candidate(direct_vm, c, policy_key, candidate_key)
-    assert result["verdict"] == "ADMITTED"
+    assert result["verdict"] == "INSUFFICIENT_EVIDENCE"
     pending = json.loads(c.get_pending_activation_json(c._test_lineage_key))
-    assert pending["sequence"] == 1
-    assert pending["candidate_key"] == candidate_key
-    assert pending["gate_address"] == "0x" + "aa" * 20
-    assert c.get_admitted_head(c._test_lineage_key) == candidate_key
-
-    evidence = json.dumps([{"role":"RELEASE_IDENTITY","url":"https://api.github.com/repos/Ifem1/fixture/git/ref/tags/v9.2.0"},
-                           {"role":"TEST_STATUS","url":ISSUER_TESTS}])
-    direct_vm.sender = bytes.fromhex("22" * 20)
-    c.open_candidate("candidate-002", policy_key, "v9.2.0", "b" * 40, candidate_key, evidence)
-    with direct_vm.expect_revert("previous activation notification is not acknowledged"):
-        c.assess_candidate("candidate-002")
-    assert c.get_admitted_head(c._test_lineage_key) == candidate_key
-
-    direct_vm.sender = bytes.fromhex("22" * 20)
-    with direct_vm.expect_revert("only configured activation gate"):
-        c.acknowledge_activation(c._test_lineage_key, 1, candidate_key,
-                                 pending["policy_digest"], pending["assessment_digest"])
-    direct_vm.sender = bytes.fromhex("aa" * 20)
-    with direct_vm.expect_revert("does not match pending admission"):
-        c.acknowledge_activation(c._test_lineage_key, 1, "candidate-002",
-                                 pending["policy_digest"], pending["assessment_digest"])
-    assert json.loads(c.get_pending_activation_json(c._test_lineage_key)) == pending
-
-    assert c.acknowledge_activation(c._test_lineage_key, 1, candidate_key,
-                                    pending["policy_digest"], pending["assessment_digest"]) == "ACKNOWLEDGED"
     assert json.loads(c.get_pending_activation_json(c._test_lineage_key)) == {}
-    history = json.loads(c.get_activation_ack_history_json(c._test_lineage_key))
-    assert len(history) == 1 and history[0]["sequence"] == 1
-    assert c.acknowledge_activation(c._test_lineage_key, 1, candidate_key,
-                                    pending["policy_digest"], pending["assessment_digest"]) == "DUPLICATE_ACKNOWLEDGMENT"
+    assert c.get_admitted_head(c._test_lineage_key) == ""
 
 
-def test_delivery_retry_is_bounded_and_keeps_sequence_and_payload(direct_vm, direct_deploy):
+def test_unverified_evidence_cannot_enable_delivery_retry(direct_vm, direct_deploy):
     c = setup(direct_vm, direct_deploy)
     admit_issuer_candidate(direct_vm, c)
-    for retry in range(1, 4):
-        assert c.retry_activation_delivery(c._test_lineage_key) == "1"
-        pending = json.loads(c.get_pending_activation_json(c._test_lineage_key))
-        assert pending["delivery_retries"] == retry
-        assert pending["candidate_key"] == "activation-candidate"
-        assert pending["sequence"] == 1
-    with direct_vm.expect_revert("retry limit exhausted"):
+    with direct_vm.expect_revert("no activation delivery is pending"):
         c.retry_activation_delivery(c._test_lineage_key)

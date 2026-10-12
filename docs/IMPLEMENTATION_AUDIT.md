@@ -6,7 +6,7 @@
 
 - Policy authoring checks canonical GitHub tag-ref, annotated-tag-object and Actions-run API URLs against the selected repository and configured role scopes. The preflight covers structured and Advanced JSON inputs and runs again before requesting the wallet signature. Publication is disabled when a required URL is outside its role scope.
 - Direct Mode regression coverage verifies frozen-scope rejection and the successor-policy shape. Playwright verifies that Advanced JSON cannot bypass the scope preflight.
-- Issuer-bound `TEST_STATUS` requires an Actions run endpoint, exactly one canonical run URL, exact issuer-committed response bytes, and checks run ID, completion, success, candidate head, repository, workflow path and push event. Arbitrary issuer-attested content cannot claim independently verified test results.
+- Historical issuer-bound `TEST_STATUS` checks an Actions run endpoint, canonical run URL, issuer-committed bytes, run ID, completion, success, candidate head, repository, workflow path and push event. Those API fields are not authenticated provenance. Current source marks them unverified and fails issuer-bound assessments closed.
 - Admission-critical evidence must have an on-chain issuer SHA-256 commitment bound to the sealed candidate round. Missing commitments are not fetched; observed redirects and byte mismatches cannot support admission. Legacy uncommitted evidence fails closed.
 - Policy assurance labels establish issuer wallet control only. They do not establish issuer identity or organizational independence.
 
@@ -27,5 +27,5 @@ Closeout at source commit `db6313b3831f102afbb698018a279f939c1ea3d9`: preflight 
 - The historical synchronous cross-contract `LATEST_FINAL` write timed out after 600 seconds in the isolated probe. The current finalized-message implementation avoids that call path and has a successful live production lifecycle; it does not claim the earlier behavior was fixed.
 - The original frozen policy and its `INSUFFICIENT_EVIDENCE` candidate remain immutable history. A successor policy and fresh candidate completed production admission.
 - The tag is unsigned. Issuer organizational independence is not established. GitHub Actions metadata is issuer-committed metadata, not independent proof of workflow authorship, test quality or software security.
-- The pinned `gl.nondet.web.get` interface does not expose final redirect origin. TRUSS limits admission-critical sources to canonical GitHub API endpoint shapes and role scopes, binds exact bytes through issuer commitments, and validates endpoint-specific provenance fields. The final network origin is not directly observable.
+- The pinned `gl.nondet.web.get` interface does not expose final redirect origin. Canonical endpoint shapes, wallet-bound exact-byte commitments and endpoint-specific JSON checks do not authenticate source origin. Current source therefore prevents issuer-bound admission; the historical deployment has not been replaced.
 - Studionet trace retrieval remains unsupported by the configured RPC (`-32601 Method not found` for `gen_dbg_traceTransaction`).

@@ -691,7 +691,24 @@ class TrussRegistry(gl.Contract):
         return result
 
     def _provenance_satisfied(self, provenance: dict, require_actions: bool = False) -> bool:
-        required = ["tag_ref_matches", "tag_resolves_to_commit"]
+        # GitHub API response fields and wallet-submitted SHA-256 commitments are
+        # useful consistency checks, but they are not cryptographic proof of
+        # origin or independent issuer identity. The pinned GenLayer web API
+        # follows redirects without exposing the final origin, and this contract
+        # currently has no verifier for a signed external attestation bundle.
+        # Keep all admission-critical provenance fail-closed until a successor
+        # verifier can establish every property below from signed material.
+        required = [
+            "canonical_repository_verified",
+            "commit_object_exists",
+            "tag_ref_matches",
+            "tag_resolves_to_commit",
+            "signed_release_or_attestation_verified",
+            "independent_issuer_credential_verified",
+            "issuer_authority_covers_evidence",
+            "evidence_subject_matches_candidate",
+            "redirect_origin_authenticated",
+        ]
         if require_actions or "actions_run_url_canonical" in provenance:
             required.extend(["actions_run_url_canonical", "actions_run_exists", "actions_run_completed", "actions_run_success",
                              "actions_run_head_matches", "actions_run_repository_matches",
@@ -702,9 +719,15 @@ class TrussRegistry(gl.Contract):
                                  require_actions: bool = False) -> dict:
         if not self._provenance_satisfied(provenance, require_actions):
             assessment["identity_match"] = "UNVERIFIED"
-            assessment["identity_finding"] = "Canonical repository tag and commit could not be verified."
+            assessment["identity_finding"] = (
+                "Independent release authenticity is unverified: GitHub API metadata and issuer-wallet "
+                "commitments do not prove repository origin, signed release provenance, issuer identity, "
+                "or redirect origin."
+            )
+            assessment["authenticated_admission"] = False
         elif assessment.get("identity_match") == "MATCH":
             assessment["identity_finding"] = "Canonical repository tag and commit match the candidate."
+            assessment["authenticated_admission"] = True
         return assessment
 
     def _normalise(self, raw, policy: dict, evidence: list, fetched: list | None = None) -> dict:
@@ -789,6 +812,8 @@ class TrussRegistry(gl.Contract):
                 "summary": _bounded(raw.get("summary", ""), 1800)}
 
     def _verdict(self, assessment: dict, policy: dict) -> str:
+        if policy.get("evidence_issuers") and assessment.get("authenticated_admission") is not True:
+            return "INSUFFICIENT_EVIDENCE"
         if assessment.get("identity_match") == "MISMATCH": return "REJECTED"
         if assessment.get("identity_match") != "MATCH": return "INSUFFICIENT_EVIDENCE"
         grouped = {}
