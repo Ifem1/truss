@@ -1,2 +1,4 @@
 # The deployed Studionet registry contains these exact CRLF bytes.
 contracts/truss_registry.py -text
+# Preserve signed Sigstore evidence and downloaded source archive byte-for-byte.
+docs/attestations/** -text
