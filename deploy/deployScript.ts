@@ -9,9 +9,13 @@ const CHAIN_ID = 61999;
 const CLI_VERSION = "0.39.1";
 const MANIFEST = "deployment-manifest.generated.json";
 
-function run(label: string, command: string, args: string[]): string {
+function run(label: string, command: string, args: string[], extraEnv: Partial<NodeJS.ProcessEnv> = {}): string {
   console.log(`\n== ${label} ==`);
-  const result = spawnSync(command, args, { encoding: "utf8", shell: process.platform === "win32" });
+  const result = spawnSync(command, args, {
+    encoding: "utf8",
+    shell: process.platform === "win32",
+    env: { ...process.env, ...extraEnv },
+  });
   if (result.stdout) process.stdout.write(result.stdout);
   if (result.stderr) process.stderr.write(result.stderr);
   if (result.error) throw result.error;
@@ -19,16 +23,21 @@ function run(label: string, command: string, args: string[]): string {
   return result.stdout ?? "";
 }
 
-const gates: Array<[string, string, string[]]> = [
+const gates: Array<[string, string, string[], Partial<NodeJS.ProcessEnv>?]> = [
   ["Repository preflight", "npm", ["run", "preflight"]],
   ["Contract compile/lint", "npm", ["run", "contracts:check"]],
   ["Direct Mode", "npm", ["run", "test:direct"]],
   ["Python unit tests", "npm", ["run", "test:unit"]],
   ["TypeScript", "npm", ["run", "typecheck"]],
-  ["Production frontend build", "npm", ["run", "build"]],
+  ["Production frontend build", "npm", ["run", "build"], {
+    // The browser suite relies on a built bundle with deterministic fixture addresses.
+    // These are test-only values and are never written to deployment manifests or Vercel.
+    NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS: "0x1111111111111111111111111111111111111111",
+    NEXT_PUBLIC_ACTIVATION_GATE_ADDRESS: "0x3333333333333333333333333333333333333333",
+  }],
   ["Browser tests", "npm", ["run", "test:e2e"]],
 ];
-for (const [label, command, args] of gates) run(label, command, args);
+for (const [label, command, args, extraEnv] of gates) run(label, command, args, extraEnv);
 
 const localPackage = JSON.parse(await readFile("node_modules/genlayer/package.json", "utf8"));
 if (localPackage.version !== CLI_VERSION) throw new Error(`Repository package must provide genlayer@${CLI_VERSION}; got ${localPackage.version}`);

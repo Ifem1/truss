@@ -12,7 +12,7 @@ const output = process.env.TRUSS_RELEASE_OUTPUT ?? "release-output";
 const privateKeyValue = process.env.TRUSS_RELEASE_SIGNING_KEY_B64 ?? "";
 
 function git(...args) {
-  return execFileSync("git", args, { encoding: "utf8" }).trim();
+  return execFileSync("git", ["-c", `safe.directory=${process.cwd()}`, ...args], { encoding: "utf8" }).trim();
 }
 
 function ghJson(...args) {
@@ -72,8 +72,14 @@ const signerKeyId = `sha256:${createHash("sha256").update(canonical({ e: exponen
 
 // git archive is binary; use spawnSync so no text conversion can alter its bytes.
 const { spawnSync } = await import("node:child_process");
-const archiveResult = spawnSync("git", ["archive", "--format=tar", `--prefix=truss-${tag}/`, commit], { encoding: "buffer" });
-if (archiveResult.status !== 0) throw new Error("Could not create source archive");
+const archiveResult = spawnSync("git", [
+  "-c", `safe.directory=${process.cwd()}`,
+  "archive", "--format=tar", `--prefix=truss-${tag}/`, commit,
+], { maxBuffer: 64 * 1024 * 1024 });
+if (archiveResult.error || archiveResult.status !== 0 || !Buffer.isBuffer(archiveResult.stdout)) {
+  throw new Error(`Could not create source archive${archiveResult.error ? `: ${archiveResult.error.message}` : ""}`);
+}
+if (archiveResult.stdout.length > 64 * 1024 * 1024) throw new Error("Source archive exceeds the 64 MiB safety limit");
 const exactArchive = gzipSync(archiveResult.stdout, { mtime: 0 });
 if (!exactArchive.length) throw new Error("Source archive is empty");
 const artifactSha256 = createHash("sha256").update(exactArchive).digest("hex");
