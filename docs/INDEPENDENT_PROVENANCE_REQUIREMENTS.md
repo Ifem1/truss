@@ -6,6 +6,21 @@ The registry can compare GitHub API-shaped fields and bind exact fetched bytes t
 
 The verifier intentionally requires all of these facts before an authenticated admission could be produced: canonical repository identity, existence of the exact commit object, a tag/release resolving to that commit, a cryptographically verified release or attestation signature, a trusted public credential identifying an issuer independent of the publisher and policy owner, issuer authority over the exact evidence subject, and authenticated source origin (or a signed bundle that makes network redirect origin immaterial). The current contract does not implement those cryptographic verifiers; no API metadata or wallet digest is promoted to proof.
 
+## GitHub build provenance now produced by CI
+
+After the complete `verify` job succeeds on a push to `master`, `.github/workflows/ci.yml` archives the exact pushed Git tree and creates a GitHub artifact attestation for that archive. GitHub signs the attestation through its Actions OIDC/Sigstore flow, and the job retains the bundle as a workflow artifact. Pull requests do not receive signing permissions. This makes the source archive digest and GitHub workflow identity independently checkable, and a redirect cannot substitute different bytes without invalidating the subject digest.
+
+To verify a downloaded archive and its bundle with GitHub CLI, use the repository and signer workflow constraints (do not omit them):
+
+```sh
+gh attestation verify truss-source.tar.gz \
+  --repo Ifem1/truss \
+  --signer-workflow Ifem1/truss/.github/workflows/ci.yml \
+  --format json
+```
+
+This proves GitHub's signed claim that the named workflow produced an attestation for the archive under the identified repository/workflow identity. Because repository maintainers control the workflow and its tests, this alone does not prove an independent human review, truthful test design, security, or issuer authority over a release. It is not yet accepted by the on-chain registry: GenVM contract code does not presently validate the Sigstore bundle, certificate identity, transparency proof, and trust root. The registry therefore remains fail-closed for authenticated admission. The attestation is a useful reproducible provenance artifact, not a bypass for that contract gate.
+
 ## Exact external material required
 
 An independent person or organization must supply:

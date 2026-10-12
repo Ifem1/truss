@@ -24,3 +24,32 @@ jobs:
           NEXT_PUBLIC_TRUSS_CONTRACT_ADDRESS: "0x1111111111111111111111111111111111111111"
           NEXT_PUBLIC_ACTIVATION_GATE_ADDRESS: "0x3333333333333333333333333333333333333333"
       - run: npm run test:e2e
+
+  attest-source:
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Create exact source archive
+        run: git archive --format=tar --prefix="truss-${GITHUB_SHA}/" "${GITHUB_SHA}" | gzip -n > "$RUNNER_TEMP/truss-source.tar.gz"
+      - name: Attest tested source archive
+        id: attest
+        uses: actions/attest@v4
+        with:
+          subject-path: ${{ runner.temp }}/truss-source.tar.gz
+      - name: Retain verification bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: truss-source-attestation-${{ github.sha }}
+          path: ${{ steps.attest.outputs.bundle-path }}
+          if-no-files-found: error
+          retention-days: 90
