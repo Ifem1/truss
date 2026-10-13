@@ -14,6 +14,7 @@
     "preflight": "python scripts/preflight.py",
     "contracts:check": "node scripts/check-contract.mjs",
     "cli:version": "node scripts/check-cli.mjs",
+    "release:verify": "node scripts/verify-signed-release-manifest.mjs",
     "deploy": "node deploy/deployScript.ts",
     "source:hash": "node scripts/source-hash.mjs"
   },

@@ -1,6 +1,6 @@
 # Policy-authorized RSA-signed release manifest
 
-Status as of 2026-10-13: implemented in the current source and exercised in GenVM Direct Mode; not yet deployed or proven in a live StudioNet lifecycle.
+Status as of 2026-10-13: implemented in the source release `v0.1.4`, verified in GenVM Direct Mode, and packaged with an RSA-signed manifest and GitHub Sigstore provenance. This does not yet establish a live StudioNet registry admission or gate activation.
 
 ## What is verified
 
@@ -8,7 +8,29 @@ For policies created with `create_policy_with_signed_manifest`, the registry fre
 
 The signed contents are independent of the response URL: following a redirect to altered or substituted bytes cannot satisfy both the issuer-committed content digest and RSA signature. The contract does not observe or authenticate the final HTTP origin. The signer key fingerprint identifies the frozen key, not a person or organization. The RSA signature authenticates that the corresponding private key signed the manifest's claims; it does not prove the claims are true, establish organizational independence, or prove that GitHub independently endorsed the CI result. The workflow's manifest generator checks GitHub repository/run metadata before signing, but the contract treats those fields as key-signed claims. GitHub Sigstore artifact attestation remains supplementary and is not verified by the contract.
 
-## Verified GitHub source attestation
+## Verified v0.1.4 release evidence
+
+The annotated release [v0.1.4](https://github.com/Ifem1/truss/releases/tag/v0.1.4) resolves to commit `00d9e6f05aee6f1ba3246bbfa2e73831de31cc4b`; its tag object is `1331426e86914b821d6ba3a1ba79d7bc1ae4e712`. The tag CI run [38325869232](https://github.com/Ifem1/truss/actions/runs/38325869232) passed. The release-manifest workflow [38364374473](https://github.com/Ifem1/truss/actions/runs/38364374473) passed and published `release-manifest.json`, `truss-source.tar.gz`, `signer-public-key.json`, `sigstore-verification.json`, and `attestation.json`.
+
+The manifest's RSA-SHA256 signature verified with the published RSA-2048 key (exponent 65537), key ID `sha256:95d4d586159d320bea7a3cdc3e09180099f49d1950d857a03188cccd66771064`. The source archive SHA-256 is `6cae9a0583295f843988997e2906a33a92eef5112c20dced244c1a7d2be47e6d`, matching the signed manifest. The manifest binds repository URL `https://github.com/Ifem1/truss`, repository ID `1407596595`, the exact commit, tag, annotated tag-object SHA, archive digest, and successful tag CI run. A local verification during release closeout confirmed the RSA signature, key fingerprint, archive digest, and those bindings.
+
+GitHub CLI `gh attestation verify` also accepted the exact archive with `--repo Ifem1/truss`, signer workflow `.github/workflows/release-manifest.yml`, and source ref `refs/heads/master`. Its verified signer identity was `https://github.com/Ifem1/truss/.github/workflows/release-manifest.yml@refs/heads/master`; it bound the archive digest to source commit `00d9e6f05aee6f1ba3246bbfa2e73831de31cc4b`, repository ID `1407596595`, run [38364374473](https://github.com/Ifem1/truss/actions/runs/38364374473), and Rekor timestamp `2026-10-13T07:42:36Z`.
+
+The complete evidence is preserved in [`docs/attestations/v0.1.4/`](attestations/v0.1.4/). SHA-256 values: manifest `31e3bb66b18470279cd8441641c9132c655d0e0cf048f60c61e5409d98a9c138`; public key `2b818c0e7e2e73bd8c7712fe20baa3eddd86eaab927b9b96021bf3a2795d4e70`; Sigstore bundle `d673a68afb2053385ab383e4cf089bf7ad0e2a3273acfd82c790ad4512e140fa`; GitHub verification output `c3cfd3094cf45437c3d2f49e5cd393cb175f9ca3bea18851d9083d97d4abcbf7`; archive `6cae9a0583295f843988997e2906a33a92eef5112c20dced244c1a7d2be47e6d`.
+
+To reproduce GitHub's attestation check from the repository root with GitHub CLI installed:
+
+```powershell
+gh attestation verify docs/attestations/v0.1.4/truss-source.tar.gz `
+  --bundle docs/attestations/v0.1.4/attestation.json `
+  --repo Ifem1/truss `
+  --signer-workflow Ifem1/truss/.github/workflows/release-manifest.yml `
+  --source-ref refs/heads/master
+```
+
+The signed release manifest is an RSA key-authenticated claim; the GitHub Sigstore bundle is the independent GitHub workflow provenance for the source archive. Neither proves a third-party review or organizational independence of the release-key controller. The contract verifies the manifest's RSA signature; it does not verify the Sigstore bundle. To reproduce the local RSA, archive-digest, and annotated-tag checks from the repository root, run `npm run release:verify` (or pass a different evidence directory and expected tag to `node scripts/verify-signed-release-manifest.mjs <directory> <tag>`). The script explicitly reports that CI metadata is a signed claim and is not independently queried by the script; use the GitHub attestation verifier above for archive provenance.
+
+## Earlier verified GitHub source attestation
 
 The GitHub Actions run for source commit `7b1b341424ced0c9e53d03d7b60aba7c0a69b9f4` passed CI and produced a Sigstore SLSA provenance attestation: [run 38321792795](https://github.com/Ifem1/truss/actions/runs/38321792795). GitHub CLI `gh attestation verify` accepted the archive with repository `Ifem1/truss`, signer workflow `.github/workflows/ci.yml`, and source ref `refs/heads/master`. The verified signer identity is `https://github.com/Ifem1/truss/.github/workflows/ci.yml@refs/heads/master`; repository ID is `1407596595`; commit is `7b1b341424ced0c9e53d03d7b60aba7c0a69b9f4`; Rekor timestamp is `2026-10-13T00:25:53+01:00`.
 
@@ -24,15 +46,15 @@ The implementation is a small contract-compatible verifier using Python integer 
 
 `scripts/create-signed-release-manifest.mjs` creates a deterministic source archive from an annotated tag and signs the canonical manifest using an RSA private key supplied through `TRUSS_RELEASE_SIGNING_KEY_B64`. `.github/workflows/release-manifest.yml` runs on `master`, checks for a successful CI push run for the exact tag commit, creates GitHub Sigstore provenance for the archive, verifies the exact bundle with GitHub CLI while pinning repository/workflow/source-ref identity, saves the verification JSON, and attaches the manifest, archive, public key, verification result, and bundle to the release. The signing secret must be provisioned and controlled according to the selected policy's trust model. Anyone with that secret can make claims accepted by a policy freezing its public key. Do not describe that key as organizationally independent based solely on a different wallet or secret.
 
-The currently provisioned release-signing public key is retained at [`docs/attestations/truss-release-signer-public-key.json`](attestations/truss-release-signer-public-key.json), with key ID `sha256:95d4d586159d320bea7a3cdc3e09180099f49d1950d857a03188cccd66771064` (RSA-2048, exponent 65537). Its private key is supplied to the GitHub Actions workflow through the repository secret `TRUSS_RELEASE_SIGNING_KEY_B64`; it is not stored in the repository. This is a repository-controlled signing key, not an independent third-party identity. No policy has yet frozen this key and no live contract has verified a manifest signed by it.
+The release-signing public key is retained at [`docs/attestations/truss-release-signer-public-key.json`](attestations/truss-release-signer-public-key.json), with key ID `sha256:95d4d586159d320bea7a3cdc3e09180099f49d1950d857a03188cccd66771064` (RSA-2048, exponent 65537). The private key is supplied to the GitHub Actions workflow through the repository secret `TRUSS_RELEASE_SIGNING_KEY_B64`; it is not stored in the repository. This is a repository-controlled signing key, not an independent third-party identity. A policy must freeze this key before a contract can verify a manifest signed by it; the `v0.1.4` evidence itself does not prove a live policy has done so.
 
 The first release-workflow dispatch for tag `v0.1.3` failed before producing or publishing a release because the archive helper passed the unsupported Node encoding name `buffer` to `spawnSync`. Local verification then exposed two additional Windows/runtime details: Git required an explicit safe-directory setting in this checkout, and Node's default 1 MiB child-process buffer was smaller than the 1.45 MB archive. The helper now captures binary stdout without text decoding, scopes Git's safe-directory setting to the working repository, allows up to 64 MiB, and rejects larger archives. The failed run is not release evidence; a new annotated tag on a green master commit is required to retry.
 
-Before creating a successor policy, independently inspect and retain the public key, its SHA-256 key ID, exact repository numeric ID, release manifest and archive, GitHub Actions run, and `gh attestation verify` result. The policy's issuer must attest the exact manifest bytes. The publisher and issuer wallet roles remain separate at the contract level; their human controllers may still be the same organization, which is explicitly not established.
+The `v0.1.4` release evidence is now retained and inspectable. A successor policy must freeze the public key and repository ID and require the designated publisher and evidence issuer roles; their human controllers may still be the same organization. The RSA signature authenticates key possession and integrity of the claims, not the truth of every claim or the organizational independence of the signer. The Actions attestation authenticates the GitHub workflow's archive provenance, but the contract does not parse or validate that Sigstore evidence.
 
 ## Deployment boundary
 
-The existing immutable registry and gate at `0x20193443d1E429e4984B118FF54DC77547b0fBCB` and `0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b` predate this verifier. No redeployment, policy creation, live admission, finalized gate activation, or acknowledgment for this RSA path has been performed. Production remains on its historical configuration. Do not claim the new contract path enforces production until source parity, a successful StudioNet 61999 lifecycle, negative live checks, frontend cutover, and CI on the final commit are independently verified.
+The existing immutable registry and gate at `0x20193443d1E429e4984B118FF54DC77547b0fBCB` and `0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b` predate this verifier. The release evidence is verified, but no policy using this key, live admission, finalized gate activation, or acknowledgment for this RSA path has been performed. Production remains on its historical configuration. Do not claim the new contract path enforces production until source parity, a successful StudioNet 61999 lifecycle, negative live checks, frontend cutover, and CI on the final commit are independently verified.
 
 Current committed source hashes from `npm run source:hash` (not deployed hashes): registry `58d9c38efa540c8d09276338ab2886dce9c8d3b5c12e1b325e48614adfdb9982`; gate `3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218`. The latter remains byte-identical to its historical deployed source.
 
