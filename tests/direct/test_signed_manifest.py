@@ -120,6 +120,45 @@ def test_policy_bound_signed_manifest_verifies_and_rejects_tampering(direct_vm, 
         direct_vm, contract, policy, candidate, evidence, "{malformed")) is False
 
 
+def test_validator_rebuilds_deterministic_manifest_authorization(direct_vm, direct_deploy):
+    contract, policy, candidate, _ = _policy(direct_vm, direct_deploy)
+    evidence = [
+        {"role": "RELEASE_IDENTITY", "url": RELEASE_URL},
+        {"role": "PROVENANCE", "url": MANIFEST_URL},
+    ]
+    manifest_body = envelope()
+    release_body = "Release v1.2.3 for the exact signed candidate."
+    provenance = _verify(direct_vm, contract, policy, candidate, evidence, manifest_body)
+    fetched = [
+        {"role": "RELEASE_IDENTITY", "url": RELEASE_URL, "http_status": 200,
+         "content_digest": hashlib.sha256(release_body.encode()).hexdigest(), "usable_content": True},
+        {"role": "PROVENANCE", "url": MANIFEST_URL, "http_status": 200,
+         "content_digest": hashlib.sha256(manifest_body.encode()).hexdigest(), "usable_content": True},
+    ]
+    raw = {
+        "identity_match": "MATCH",
+        "identity_finding": "The signed manifest matches.",
+        "criteria": [{"id": "SIGNED_RELEASE", "state": "SATISFIED", "finding": "Exact release."}],
+        "evidence_states": [
+            {"url": RELEASE_URL, "state": "SUPPORTS", "finding": "Release identity."},
+            {"url": MANIFEST_URL, "state": "SUPPORTS", "finding": "Signed manifest."},
+        ],
+        "material_findings": [], "summary": "Signed candidate verified.",
+        "provenance_checks": provenance,
+    }
+
+    verified = contract._normalise_validator_assessment(raw, policy, evidence, fetched)
+    assert verified["authenticated_admission"] is True
+    assert verified["verdict"] == "ADMITTED"
+
+    forged = dict(provenance, manifest_signature_verified=False)
+    raw["provenance_checks"] = forged
+    rejected = contract._normalise_validator_assessment(raw, policy, evidence, fetched)
+    assert rejected["authenticated_admission"] is False
+    assert rejected["identity_match"] == "UNVERIFIED"
+    assert rejected["verdict"] == "INSUFFICIENT_EVIDENCE"
+
+
 def test_valid_signed_manifest_supports_actual_direct_mode_admission(direct_vm, direct_deploy):
     contract, policy, candidate, _ = _policy(direct_vm, direct_deploy)
     lineage = policy["lineage_key"]
