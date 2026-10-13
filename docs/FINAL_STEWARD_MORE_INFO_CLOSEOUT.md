@@ -1,97 +1,59 @@
 # Final Steward More Info Closeout
 
-> **Status update (2026-10-13):** The historical sections below describe the previous Sigstore-only verifier investigation and are not the current source status. Current source adds an RFC 8017 RSA-SHA256 signed-manifest path; its isolated verifier and full Direct Mode admission/forgery tests pass. It is not deployed and has no live StudioNet lifecycle evidence. The RSA key fingerprint is not a real-world identity credential, and signed CI fields are claims by that key, not independently verified GitHub facts. See [SIGNED_RELEASE_MANIFEST.md](SIGNED_RELEASE_MANIFEST.md). Existing deployed contracts and production configuration remain unchanged.
+**Updated:** 2026-10-13. This record supersedes the stale “no live lifecycle” statements in earlier snapshots below this repository's historical evidence. The new RSA-signed manifest path has been deployed and exercised on an isolated Studionet 61999 lineage. The production registry, production gate, policies, evidence history and Vercel contract configuration remain unchanged.
 
-**Status: Direct Mode implementation PASS; deployed/live enforcement NOT PROVEN.** The RSA manifest path is implemented in current source and has a positive and negative Direct Mode assessment test. This doc's older Sigstore-only run and deployment details below are historical. No signer-controlled live manifest, successor deployment, or StudioNet lifecycle has yet been performed.
+## Outcome
 
-## 1. Authentic release evidence
+The v0.1.5 signed-manifest test lineage completed policy → candidate → authenticated evidence → finalized `ADMITTED` assessment → finalized registry-to-gate admission → activation → finalized registry acknowledgment. Live invalid-candidate and unauthorized-operator calls were rejected by contract execution and did not alter canonical state. This proves the deployed RSA-manifest enforcement path for this separate lineage. It does **not** prove issuer organizational independence, third-party review, or independent correctness of the signed CI claims. The new lineage is not production's configured registry/gate pair.
 
-| Requirement | Result | Evidence |
-| --- | --- | --- |
-| Canonical source repository | PASS | `https://github.com/Ifem1/truss`, repository ID `1407596595` in the signed SLSA statement. |
-| Exact source commit | PASS | `2a195c52bd60ceda522b1988874585169c0e9d90`. |
-| Version tag/ref | PARTIAL | The signed build is for `refs/heads/master`; this run did not attest a version tag or publish a versioned GitHub Release. No version tag is claimed here. |
-| Exact artifact digest | PASS | `truss-source.tar.gz`, SHA-256 `4566fc8cbb3ef9d41c95907bb590bddda9d1e1e000997bc3f40287a7ada58ab7`. The archive is committed here with its bundle. |
-| Attestation signature and authority | PASS, limited scope | GitHub Actions OIDC certificate, signer SAN `https://github.com/Ifem1/truss/.github/workflows/ci.yml@refs/heads/master`, issuer `https://token.actions.githubusercontent.com`, certificate issuer `CN=sigstore-intermediate,O=sigstore.dev`, and Rekor timestamp `2026-10-12T22:34:49+01:00`. |
-| Official verifier | PASS | `gh attestation verify` succeeded for the exact archived subject, explicit repository, explicit signer workflow, downloaded bundle and saved Sigstore trusted-root snapshot. GitHub run [38311029338](https://github.com/Ifem1/truss/actions/runs/38311029338) passed both CI and the attestation job. |
+## Signed release evidence
 
-The attestation bundle, archive and trusted-root snapshot are preserved in [`docs/attestations/2a195c5/`](attestations/2a195c5/). Their SHA-256 values are respectively:
+- Repository: `Ifem1/truss`, GitHub repository ID `1407596595`.
+- Release: [v0.1.5](https://github.com/Ifem1/truss/releases/tag/v0.1.5), commit [`06d4ac58dec4273f744fdab07a8465ee6244d26d`](https://github.com/Ifem1/truss/commit/06d4ac58dec4273f744fdab07a8465ee6244d26d), annotated tag-object `42508dd83e3e672a8eaf4c311ac119db2691d43a`.
+- Source archive SHA-256: `356fdf995f5e09b0601ea9a2e99fe55b36a19085447f8a1a34afd9a626bb6c29`.
+- Signed manifest SHA-256: `fb18d5462caefe7ac758e1a8a0e68fbac446e8f15008f0ee9eb9255ce34f9527`.
+- Frozen RSA key ID: `sha256:95d4d586159d320bea7a3cdc3e09180099f49d1950d857a03188cccd66771064`.
+- CI: [master run 38377004652](https://github.com/Ifem1/truss/actions/runs/38377004652), [tag run 38377804251](https://github.com/Ifem1/truss/actions/runs/38377804251), and [signed-release run 38378347900](https://github.com/Ifem1/truss/actions/runs/38378347900), all passed. GitHub CLI `gh attestation verify` accepted the source archive for `Ifem1/truss`, workflow `.github/workflows/release-manifest.yml`, ref `refs/heads/master`, run 38378347900, with Rekor timestamp `2026-10-13T10:43:35+01:00`.
 
-- Bundle: `7b62b6d44e6e3683614584170f45c6c47fa8899debc59829fd50cede2dc3e996`
-- Source archive: `4566fc8cbb3ef9d41c95907bb590bddda9d1e1e000997bc3f40287a7ada58ab7`
-- Trusted-root JSONL: `65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c`
+The contract verifies the RSA signature over canonical manifest bytes, frozen key fingerprint, repository/candidate binding, tag/commit/artifact fields, and the issuer-committed response digest. It does not verify the GitHub Sigstore bundle inside GenVM. The Sigstore attestation is supplementary, externally verified evidence. Signed CI fields are key-authenticated claims, not independent proof that the workflow ran correctly or that tests are sufficient. Signature verification authenticates content despite URL redirects; it does not authenticate the final HTTP origin.
 
-Reproduce verification from the repository root with GitHub CLI:
+## Deployed contracts and configuration
 
-```sh
-gh attestation verify docs/attestations/2a195c5/truss-source.tar.gz \
-  --bundle docs/attestations/2a195c5/attestation.json \
-  --custom-trusted-root docs/attestations/2a195c5/trusted-root.jsonl \
-  --repo Ifem1/truss \
-  --signer-workflow Ifem1/truss/.github/workflows/ci.yml \
-  --format json
-```
+| Component | Address | Deployment/config transaction | Deployed source SHA-256 |
+| --- | --- | --- | --- |
+| RSA registry, isolated lineage | [0xB5eA66c2b0faA42237fdAc42d75af0FcF21bf10F](https://explorer-studio.genlayer.com/address/0xB5eA66c2b0faA42237fdAc42d75af0FcF21bf10F) | [deploy](https://explorer-studio.genlayer.com/tx/0xb49a3c400dba80c93c6293e3d96ea54d998df8e3d909ea74d1ec850eae275aa6) | `2110d8b755b626da73dffd352030b05a941116921632d8e0fd6a3a10a4a62797` |
+| RSA activation gate, isolated lineage | [0x0F8AC5EAB858D0B2820846A3938CCC6C3B951546](https://explorer-studio.genlayer.com/address/0x0F8AC5EAB858D0B2820846A3938CCC6C3B951546) | [deploy](https://explorer-studio.genlayer.com/tx/0x9438ef95860a8b074e8bb5d7ba84656417b3b727e08062eca77e8b40e8ace492); [configure](https://explorer-studio.genlayer.com/tx/0x758c8338f14c9e4d6e833fad756a91a258d9173bd1157285d1ef138f85b61d6d) | `3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218` |
 
-The workflow in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) signs the source archive only after the full `verify` job passes. The exact attestation and source files were downloaded from run 38311029338 and verified locally using the official GitHub CLI. The CI job did not publish a versioned release; consequently the attestation says `master`, not a release tag.
+Both deployed sources were byte-compared with repository source. The policy `truss-v015-rsa-policy-20261013`, digest `48fa7b6cc3ab7924fb2a027fcd96469516b1afcac9f60e39c4a38a2e3ea4164c`, was created in [transaction 0x5c955ebc58d85d12aa248e18d8424dd31d24c746904f732781ceda9bffd02845](https://explorer-studio.genlayer.com/tx/0x5c955ebc58d85d12aa248e18d8424dd31d24c746904f732781ceda9bffd02845). It binds owner/publisher `0x39680bd423437c0eaa18493629652821ec672c61` and issuer `0x6b476bf35c4968f3f1775c0ca2110591b4b5fcbe`; the gate operator is `0x77e2edbb43277bf772e207c517dde731935ffba5`. Policy explicitly says wallet control only and issuer organizational independence not established.
 
-### What the Sigstore result means
+## Live lifecycle evidence
 
-The signature, certificate identity, source digest, workflow identity, OIDC issuer and transparency timestamp provide independently checkable evidence that GitHub Actions workflow `.github/workflows/ci.yml` in `Ifem1/truss` produced an attestation for this exact source archive at this commit. A redirected download cannot substitute different bytes while preserving the verified SHA-256 subject.
+Candidate `truss-v015-signed-candidate-20261013` names v0.1.5 / commit `06d4ac58dec4273f744fdab07a8465ee6244d26d`.
 
-This is build provenance. It does not establish an independent human reviewer, organizational independence, correctness of repository-controlled tests, test quality, software security, or the truth of arbitrary predicate claims. Repository maintainers control the workflow. A separate issuer wallet proves control of that wallet and its on-chain content commitment only. These assurance types are distinct; none is described as third-party review.
+- Candidate open: [0x59f80c3a4c5a74113468008763245d03a6a84b04c013bda0b9b70429e37b139f](https://explorer-studio.genlayer.com/tx/0x59f80c3a4c5a74113468008763245d03a6a84b04c013bda0b9b70429e37b139f).
+- Issuer-attested evidence transactions: [ref](https://explorer-studio.genlayer.com/tx/0xe3b900d3a1db99014c2f1290c1b1ac908b911299f729d9bd31a391385c07f634), [annotated tag object](https://explorer-studio.genlayer.com/tx/0xa658f784e1ac6b22e3fa2c5fd4a21293710cc17a2f1a18e40c1f1a8148573ba1), [commit object](https://explorer-studio.genlayer.com/tx/0x99474985f9a9552d841767b050bb1b70da32db51a99b4e1d4b46c6716468d866), [signed manifest](https://explorer-studio.genlayer.com/tx/0x2501420fbe4aaad3eef4673b2ed8eaafe0d0948a80a013da5c082bcde27df867).
+- Seal: [0x5a012c55396ddc835dee5f477ac25cc71986a742407243e825e9ee4ac24d25a7](https://explorer-studio.genlayer.com/tx/0x5a012c55396ddc835dee5f477ac25cc71986a742407243e825e9ee4ac24d25a7).
+- Assessment: [0xfb420fd74bcf0b96b00144112da4295a22195247a23781460f59360956cd877f](https://explorer-studio.genlayer.com/tx/0xfb420fd74bcf0b96b00144112da4295a22195247a23781460f59360956cd877f), `FINALIZED`, `MAJORITY_AGREE`, leader `SUCCESS`, verdict `ADMITTED`.
+- Finalized admission child: [0x8c623b1dd5695fc4e8883bb1abe4210490c5bc2ac16e91dbbda608853b550c5d](https://explorer-studio.genlayer.com/tx/0x8c623b1dd5695fc4e8883bb1abe4210490c5bc2ac16e91dbbda608853b550c5d), `FINALIZED`, `MAJORITY_AGREE`, leader `SUCCESS`.
+- Activation: [0xdb84dd28f2cb470648e64f45cd66829ab3d3ae5dbbdb97580dbf068903be558d](https://explorer-studio.genlayer.com/tx/0xdb84dd28f2cb470648e64f45cd66829ab3d3ae5dbbdb97580dbf068903be558d), `FINALIZED`, `MAJORITY_AGREE`, leader `SUCCESS`.
+- Finalized acknowledgment child: [0xcb7ae1db0a46e91e82f5fd217eae104c024fecd9e33cd9a04e8b182d9b3415fa](https://explorer-studio.genlayer.com/tx/0xcb7ae1db0a46e91e82f5fd217eae104c024fecd9e33cd9a04e8b182d9b3415fa), `FINALIZED`, `MAJORITY_AGREE`, leader `SUCCESS`.
+- Live invalid-candidate rejection: [0x9eb3fdcea531b6546c92e79fda328dd8b660ad5af65943f38512c1b61bd1f4c5](https://explorer-studio.genlayer.com/tx/0x9eb3fdcea531b6546c92e79fda328dd8b660ad5af65943f38512c1b61bd1f4c5), finalized majority, leader execution `ERROR`/rollback.
+- Live unauthorized-operator rejection: [0x0c91fab79e7a2b0bae6c3365f3b70c86b217703a846184edc9efa4825533f0bc](https://explorer-studio.genlayer.com/tx/0x0c91fab79e7a2b0bae6c3365f3b70c86b217703a846184edc9efa4825533f0bc), finalized majority, leader execution `ERROR`/rollback.
 
-## 2. Contract-side Sigstore verification
+Canonical post-state reads agree: registry head and gate active candidate are `truss-v015-signed-candidate-20261013`; registry pending activation and gate pending admission are `{}`; registry acknowledgment history has sequence 1 with matching gate, policy and assessment digest; gate activation history has sequence 1 with the expected commit and policy. Gate `pending_acknowledgment` retains the retry/outbox record with retry count 0 even after the registry records delivery; this is existing contract behavior, not evidence that the registry acknowledgment failed.
 
-**Sigstore is not verified inside the contract.** Neither deployed registry nor current source parses and authenticates Sigstore DSSE bundles, verifies the Fulcio certificate identity and chain, verifies Rekor inclusion proof/checkpoint, or binds those Sigstore claims to the candidate. Current source instead has a separate RSA signed-manifest path; it authenticates content against a key frozen in policy and is explicitly not represented as on-chain Sigstore verification. Legacy policies continue to fail closed on their unauthenticated provenance path.
+After both live rejection probes, canonical reads still showed the same active candidate and histories, with no pending admission or registry activation. The gate's retry/outbox record remained unchanged.
 
-Runtime checks used repository-local GenLayer CLI 0.39.1 and the contract runner pinned in the source header (`py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6`, lint environment `GENVM_VERSION=v0.3.0-rc7`). A temporary contract probe using `genvm-lint check` produced:
+## Production and trust boundary
 
-- `Import error: No module named 'cryptography'`
-- With that import removed, `Import error: No module named 'ecdsa'`
-- `hashlib`, `base64`, `json` and `ssl` imports passed contract validation, but the runtime exposes no supported X.509/Sigstore certificate-chain or ECDSA verification API through those imports.
+The production registry remains `0x20193443d1E429e4984B118FF54DC77547b0fBCB` and production gate `0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b`. Production Vercel continues to use that existing pair; it was not pointed at the isolated v0.1.5 lineage. Prior production lifecycle and frontend evidence remain in [LIVE_RELEASE_MATRIX.md](LIVE_RELEASE_MATRIX.md) and [deployment-manifest.public.json](../deployment-manifest.public.json).
 
-These checks showed common verification packages were absent from the pinned contract dependency. The current compact RSA verifier uses only supported deterministic primitives (`hashlib`, integer conversion and `pow`) and passes GenVM Direct Mode RFC 8017 vectors; it does not implement ASN.1, P-256, Fulcio chains, Rekor checkpoints or inclusion proofs. Its scope and unaudited status are documented in [SIGNED_RELEASE_MANIFEST.md](SIGNED_RELEASE_MANIFEST.md).
+Issuer and publisher are distinct wallet addresses, but organizational independence is **not established**. The RSA key is repository-controlled and identifies only a frozen key fingerprint. The GitHub/Sigstore attestation was verified outside the contract and is not checked by GenVM. The signed manifest authenticates content and candidate binding; it does not prove the truth of the signed CI claim, third-party review, or final redirect origin. Historical `LATEST_FINAL` cross-contract timeout remains a separate historical issue; finalized messages are the mechanism used here.
 
-The GitHub CLI verification performed off chain is not passed to the contract as a `verified: true` flag and is not counted as enforcement.
+## Verification
 
-## 3. Trust roles
+At source commit `06d4ac58dec4273f744fdab07a8465ee6244d26d`, repository-local GenLayer CLI 0.39.1 and Studionet 61999 were used. Recorded passing checks: preflight; contract lint/semantic validation (7 contracts); Direct Mode 63/63; unit tests 2/2; TypeScript typecheck; production build; Playwright 19/19. Master, tag, and signed-release GitHub Actions runs linked above passed. Production UI was deliberately not switched to the isolated lineage.
 
-- **Policy owner:** selects and freezes the policy and trust limits.
-- **Publisher:** opens a candidate under that policy.
-- **Designated issuer wallet:** signs an on-chain digest commitment; this authenticates wallet control and the committed bytes only.
-- **GitHub/Sigstore build provenance:** authenticates the named GitHub workflow identity and the signed subject digest under the published trust root; it does not authenticate a separate reviewer.
-- **Third-party review:** not present in this evidence and not claimed.
+## Acceptance statement
 
-No signer controlled by the repository is called independent of the publisher or policy owner. The UI and security docs retain the issuer-independence limitation.
-
-## 4. Admission and deployment state
-
-**No fresh authenticated lifecycle was submitted.** There is no new policy, candidate assessment, admission message, activation, acknowledgment, or negative-path transaction for this Sigstore evidence. The historical deployed registry remains `0x20193443d1E429e4984B118FF54DC77547b0fBCB` (source SHA-256 `244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1`) and the production gate remains `0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b` (source SHA-256 `3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218`). They are historical deployed implementations and do not contain this bundle verifier. No deployment, production policy change, or frontend cutover was made.
-
-The throwaway and historical wallet-attested lifecycles remain supporting historical evidence only. They do not prove that deployed contracts authenticate an RSA manifest or Sigstore bundle, or that a new candidate can be admitted under the new policy path.
-
-## 5. Tests and CI
-
-Historical verification for source snapshot `2a195c52bd60ceda522b1988874585169c0e9d90`:
-
-- `npm run preflight` — PASS
-- `npm run cli:version` — PASS, 0.39.1
-- `npm run contracts:check` — PASS
-- `npm run test:unit` — PASS, 2 tests
-- `npm run test:direct` — PASS, 58 tests
-- `npm run typecheck` — PASS
-- `npm run build` — PASS
-- `npm run test:e2e` — PASS, 18 tests
-- GitHub Actions — PASS, [run 38311029338](https://github.com/Ifem1/truss/actions/runs/38311029338), including signed-source attestation and artifact retention
-- `gh attestation verify` with the bundle, trusted-root snapshot, exact repository and exact workflow — PASS
-
-These results prove CI and source provenance for that snapshot. They do not prove contract-side signature verification, a fresh tagged release, or live authenticated admission.
-
-## 6. Required remaining work
-
-1. Complete an authenticated source release with a populated signing secret and verify the signed archive bundle using GitHub CLI.
-2. Obtain or provision the policy-authorized RSA key under the intended custody model and create the successor policy with its public key frozen.
-3. Only after full tests and policy/evidence verification, deploy a successor registry/gate pair as needed; retain existing contracts and records unchanged.
-4. Prove a genuine finalized `ADMITTED` result, finalized gate activation/acknowledgment, and actual contract-level rejection paths on StudioNet 61999. Confirm canonical post-state.
-
-Until those gates pass, only the local Direct Mode path is demonstrated; production outcome is **not complete**. No test wallet, API JSON field, model judgment, wallet digest, or off-chain approval flag may bypass this state.
+The RSA-signed manifest path is now deployed and has a successful finalized live lifecycle plus live invalid-candidate and unauthorized-operator rejection proofs. The production pair remains unchanged. **The broader trust requirement for independently attributable issuer identity is not met**: no external organizational credential or third-party attestation was supplied, and this implementation does not claim one.

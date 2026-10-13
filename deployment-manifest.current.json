@@ -418,5 +418,66 @@
     "playwright": "PASS: 18/18",
     "publicBrowserSmoke": "PASS: public routes; live policy and release details at 320px; local production build across 320/390/768/1024/1440px; no page errors or horizontal overflow; live dossier state previously confirmed ADMITTED and acknowledged",
     "githubActions": "PASS: https://github.com/Ifem1/truss/actions/runs/38184354359 (master db6313b3831f102afbb698018a279f939c1ea3d9)"
+  },
+  "signedManifestValidationLifecycle": {
+    "status": "COMPLETE_SEPARATE_V015_RSA_VALIDATION_LINEAGE_PRODUCTION_UNCHANGED",
+    "registry": {
+      "address": "0xB5eA66c2b0faA42237fdAc42d75af0FcF21bf10F",
+      "deploymentTransaction": "0xb49a3c400dba80c93c6293e3d96ea54d998df8e3d909ea74d1ec850eae275aa6",
+      "sourceSha256": "2110d8b755b626da73dffd352030b05a941116921632d8e0fd6a3a10a4a62797",
+      "sourceVerification": "BYTE_MATCH"
+    },
+    "activationGate": {
+      "address": "0x0F8AC5EAB858D0B2820846A3938CCC6C3B951546",
+      "deploymentTransaction": "0x9438ef95860a8b074e8bb5d7ba84656417b3b727e08062eca77e8b40e8ace492",
+      "configurationTransaction": "0x758c8338f14c9e4d6e833fad756a91a258d9173bd1157285d1ef138f85b61d6d",
+      "sourceSha256": "3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218",
+      "sourceVerification": "BYTE_MATCH"
+    },
+    "policy": {
+      "key": "truss-v015-rsa-policy-20261013",
+      "digest": "48fa7b6cc3ab7924fb2a027fcd96469516b1afcac9f60e39c4a38a2e3ea4164c",
+      "transaction": "0x5c955ebc58d85d12aa248e18d8424dd31d24c746904f732781ceda9bffd02845",
+      "issuerIndependence": "NOT_ESTABLISHED"
+    },
+    "lineage": "truss-v015-rsa-lineage-20261013",
+    "candidate": "truss-v015-signed-candidate-20261013",
+    "release": "v0.1.5",
+    "commit": "06d4ac58dec4273f744fdab07a8465ee6244d26d",
+    "assessmentTransaction": "0xfb420fd74bcf0b96b00144112da4295a22195247a23781460f59360956cd877f",
+    "admissionChildTransaction": "0x8c623b1dd5695fc4e8883bb1abe4210490c5bc2ac16e91dbbda608853b550c5d",
+    "activationTransaction": "0xdb84dd28f2cb470648e64f45cd66829ab3d3ae5dbbdb97580dbf068903be558d",
+    "acknowledgmentChildTransaction": "0xcb7ae1db0a46e91e82f5fd217eae104c024fecd9e33cd9a04e8b182d9b3415fa",
+    "negativeProbes": [
+      {
+        "kind": "invalid_candidate",
+        "transaction": "0x9eb3fdcea531b6546c92e79fda328dd8b660ad5af65943f38512c1b61bd1f4c5",
+        "consensus": "MAJORITY_AGREE",
+        "leaderExecution": "ERROR_ROLLBACK"
+      },
+      {
+        "kind": "unauthorized_operator",
+        "transaction": "0x0c91fab79e7a2b0bae6c3365f3b70c86b217703a846184edc9efa4825533f0bc",
+        "consensus": "MAJORITY_AGREE",
+        "leaderExecution": "ERROR_ROLLBACK"
+      }
+    ],
+    "canonicalState": {
+      "registryAdmittedHead": "truss-v015-signed-candidate-20261013",
+      "gateActiveCandidate": "truss-v015-signed-candidate-20261013",
+      "registryPendingActivation": {},
+      "gatePendingAdmission": {},
+      "registryAcknowledgmentSequence": 1,
+      "gateActivationSequence": 1,
+      "gatePendingAcknowledgment": "RETRY_OUTBOX_RETAINED_RETRY_COUNT_0"
+    },
+    "productionCutover": false,
+    "productionAuthorityUnchanged": true,
+    "closeoutDocument": "docs/FINAL_STEWARD_MORE_INFO_CLOSEOUT.md",
+    "trustLimits": {
+      "issuerOrganizationalIndependence": "NOT_ESTABLISHED",
+      "sigstoreContractVerification": false,
+      "ciStatus": "POLICY_AUTHORIZED_RSA_SIGNED_CLAIM_NOT_INDEPENDENTLY_VERIFIED"
+    }
   }
 }

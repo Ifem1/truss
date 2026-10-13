@@ -1,12 +1,12 @@
 # Implementation and security audit record
 
-**Snapshot:** 2026-10-11. This record distinguishes local tests, live Studionet proofs, and trust limitations. Transaction-level production evidence is in the [live release matrix](LIVE_RELEASE_MATRIX.md).
+**Snapshot:** 2026-10-11, with current 2026-10-13 addendum. The original observations remain historical where stated. The signed-manifest path subsequently received an isolated live validation deployment; production authority remains unchanged. Transaction-level evidence is in the [live release matrix](LIVE_RELEASE_MATRIX.md) and [final closeout](FINAL_STEWARD_MORE_INFO_CLOSEOUT.md).
 
 ## Source changes in the closeout
 
 - Policy authoring checks canonical GitHub tag-ref, annotated-tag-object and Actions-run API URLs against the selected repository and configured role scopes. The preflight covers structured and Advanced JSON inputs and runs again before requesting the wallet signature. Publication is disabled when a required URL is outside its role scope.
 - Direct Mode regression coverage verifies frozen-scope rejection and the successor-policy shape. Playwright verifies that Advanced JSON cannot bypass the scope preflight.
-- Historical issuer-bound `TEST_STATUS` checks Actions metadata and issuer-committed bytes; those fields alone are not authenticated provenance. Current source adds an opt-in RSA-signed manifest policy and verifies its signature and candidate bindings in contract code. Direct Mode covers a passing admission and forged-signature rejection. This path is not deployed and its signer claims are not independently proven facts.
+- Historical issuer-bound `TEST_STATUS` checks Actions metadata and issuer-committed bytes; those fields alone are not authenticated provenance. Current source adds an opt-in RSA-signed manifest policy and verifies its signature and candidate bindings in contract code. Direct Mode covers a passing admission and forged-signature rejection. A separate v0.1.5 registry/gate pair now has a finalized live authenticated lifecycle and live invalid-candidate/unauthorized-operator rollback proofs. Its signer claims do not establish organizational independence or independent CI truth; it is not the production pair.
 - Admission-critical evidence must have an on-chain issuer SHA-256 commitment bound to the sealed candidate round. Missing commitments are not fetched; observed redirects and byte mismatches cannot support admission. Legacy uncommitted evidence fails closed.
 - Policy assurance labels establish issuer wallet control only. They do not establish issuer identity or organizational independence.
 

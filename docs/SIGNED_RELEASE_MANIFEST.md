@@ -1,6 +1,6 @@
 # Policy-authorized RSA-signed release manifest
 
-Status as of 2026-10-13: implemented in the source release `v0.1.4`, verified in GenVM Direct Mode, and packaged with an RSA-signed manifest and GitHub Sigstore provenance. This does not yet establish a live StudioNet registry admission or gate activation.
+Status as of 2026-10-13: the RSA-SHA256 verifier was introduced in v0.1.4, packaged in signed release v0.1.5, deployed to an isolated Studionet 61999 registry/gate pair, and used in a finalized live admission, activation, and acknowledgment. Live invalid-candidate and unauthorized-operator probes also finalized with contract execution rollback. This pair is a separate validation lineage; production remains on its existing pair. Full transaction and state evidence is in [FINAL_STEWARD_MORE_INFO_CLOSEOUT.md](FINAL_STEWARD_MORE_INFO_CLOSEOUT.md).
 
 ## What is verified
 
@@ -52,11 +52,15 @@ The first release-workflow dispatch for tag `v0.1.3` failed before producing or 
 
 The `v0.1.4` release evidence is now retained and inspectable. A successor policy must freeze the public key and repository ID and require the designated publisher and evidence issuer roles; their human controllers may still be the same organization. The RSA signature authenticates key possession and integrity of the claims, not the truth of every claim or the organizational independence of the signer. The Actions attestation authenticates the GitHub workflow's archive provenance, but the contract does not parse or validate that Sigstore evidence.
 
-## Deployment boundary
+## Historical deployment boundary (before v0.1.5 validation)
 
-The existing immutable registry and gate at `0x20193443d1E429e4984B118FF54DC77547b0fBCB` and `0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b` predate this verifier. The release evidence is verified, but no policy using this key, live admission, finalized gate activation, or acknowledgment for this RSA path has been performed. Production remains on its historical configuration. Do not claim the new contract path enforces production until source parity, a successful StudioNet 61999 lifecycle, negative live checks, frontend cutover, and CI on the final commit are independently verified.
+The production registry and gate at `0x20193443d1E429e4984B118FF54DC77547b0fBCB` and `0x6572Db4AAd54DAf4C7461D9B18f9f138d2fa387b` predate the RSA verifier and remain unchanged. A separate v0.1.5 verifier lineage is deployed and live-validated; it is not production and the production frontend was not cut over to it.
 
-Current committed source hashes from `npm run source:hash` (not deployed hashes): registry `58d9c38efa540c8d09276338ab2886dce9c8d3b5c12e1b325e48614adfdb9982`; gate `3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218`. The latter remains byte-identical to its historical deployed source.
+At the v0.1.5 deployment, registry source SHA-256 was `2110d8b755b626da73dffd352030b05a941116921632d8e0fd6a3a10a4a62797`; gate source SHA-256 was `3138c02fbfbd4fd5d0c58029e42d3668c0acd707dc6a0da251bd83d8147ea218`. Both were byte-verified. The historical production registry source remains `244a49a057902d5c3b930412fea478f19bbc3c70c04879341dcd2d11b41a8bf1`.
+
+## Live v0.1.5 validation lineage
+
+The policy-authorized RSA key and issuer attestations support the live ADMITTED candidate, and the gate activated it through finalized messages. The exact deployment, policy, evidence attestations, assessment, admission child, activation, acknowledgment child, negative probes, and canonical state are linked in [the closeout record](FINAL_STEWARD_MORE_INFO_CLOSEOUT.md). The positive live path demonstrates that the current contract code can verify the RSA-signed manifest and enforce admission. It is a distinct lineage and does not update production's existing policy, registry, gate, or frontend.
 
 ## Standards and source references
 
