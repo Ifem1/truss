@@ -2,6 +2,10 @@
 
 ## Current state
 
+**Steward disposition (2026-10-14): unresolved.** The repository contains no independent issuer credential or signed third-party release attestation. The finalized v0.1.5 RSA validation lifecycle proves enforcement of the policy-frozen signing key and candidate bindings, but it does not prove that the key controller is organizationally independent. Do not describe or resubmit that lifecycle as independently attributable provenance.
+
+An independent issuer must first provide the public credential, authority statement, and release attestation described below. Any stronger verifier must be implemented and tested against those actual artifacts, deployed on a separate validation lineage, and exercised through a finalized admission, gate activation, and acknowledgment. Until that happens, there is no qualifying independently attributable lifecycle.
+
 Historical deployments and legacy policies can compare GitHub API-shaped fields and bind exact fetched bytes to a wallet transaction. Neither alone is an authenticated release claim. Current source additionally supports a successor-policy RSA-signed manifest path, described in [SIGNED_RELEASE_MANIFEST.md](SIGNED_RELEASE_MANIFEST.md), whose positive and negative behavior is tested in Direct Mode. It authenticates content under a frozen key, not the network origin or a real-world signer identity. Existing deployed contracts do not include this verifier; historical finalized records and active production release are unchanged.
 
 The current RSA manifest path requires the policy-frozen key signature, fixed repository identity and ID, candidate commit and tag binding, artifact digest shape, canonical CI claim shape, and exact bytes committed by the designated issuer. A signed payload makes redirect substitution of the contents detectable, even though the runtime hides the final origin. It does not independently prove that the commit exists on GitHub or that the CI claim is true: those remain claims made by the signer. It also does not establish that the signer is independent of the publisher or policy owner. The stronger Sigstore certificate and transparency proofs below remain supplementary and are not enforced by the contract.
@@ -32,7 +36,7 @@ The RSA path can authenticate a policy-frozen key's signature without this mater
 3. A signed DSSE/in-toto or equivalent attestation bundle, including the signature, certificate/credential chain, transparency-log inclusion material where applicable, and trusted-root data. The signed subject must bind the canonical repository `Ifem1/truss`, the exact 40-hex commit, release/tag identity and object, and the precise evidence bytes/digests. The predicate must state the issuer's authority and independent review scope.
 4. A public verification procedure and immutable source URL for the bundle. Verification must validate cryptography, signer identity, subject digest, repository, commit, tag relationship, issuer scope, and trust root; it must not trust API response fields or the URL's final redirect.
 
-No such independent credential or signed statement is present in the repository or current production evidence. The current RSA mode must therefore continue to disclose `issuer_independence: NOT_ESTABLISHED`. No private key is requested or needed for review; public credential and signed bundle are the necessary inputs for the stronger third-party identity claim.
+No such independent credential or signed statement is present in the repository, validation evidence, or current production evidence. The RSA mode must therefore continue to disclose `issuer_independence: NOT_ESTABLISHED`. No private key is requested or needed for review; public credential and signed bundle are the necessary inputs for the stronger third-party identity claim.
 
 ## Reproduction
 

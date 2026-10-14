@@ -1,6 +1,6 @@
 # Policy-authorized RSA-signed release manifest
 
-Status as of 2026-10-13: the RSA-SHA256 verifier was introduced in v0.1.4, packaged in signed release v0.1.5, deployed to an isolated Studionet 61999 registry/gate pair, and used in a finalized live admission, activation, and acknowledgment. Live invalid-candidate and unauthorized-operator probes also finalized with contract execution rollback. This pair is a separate validation lineage; production remains on its existing pair. Full transaction and state evidence is in [FINAL_STEWARD_MORE_INFO_CLOSEOUT.md](FINAL_STEWARD_MORE_INFO_CLOSEOUT.md).
+Status reviewed 2026-10-14: the RSA-SHA256 verifier was introduced in v0.1.4, packaged in signed release v0.1.5, deployed to an isolated Studionet 61999 registry/gate pair, and used in a finalized live admission, activation, and acknowledgment. Live invalid-candidate and unauthorized-operator probes also finalized with contract execution rollback. This pair is a separate validation lineage; production remains on its existing pair. The validation lifecycle does not establish independent issuer identity. Full transaction, source-parity and state evidence is consolidated in [FINAL_STEWARD_MORE_INFO_CLOSEOUT.md](FINAL_STEWARD_MORE_INFO_CLOSEOUT.md).
 
 ## What is verified
 
@@ -60,7 +60,7 @@ At the v0.1.5 deployment, registry source SHA-256 was `2110d8b755b626da73dffd352
 
 ## Live v0.1.5 validation lineage
 
-The policy-authorized RSA key and issuer attestations support the live ADMITTED candidate, and the gate activated it through finalized messages. The exact deployment, policy, evidence attestations, assessment, admission child, activation, acknowledgment child, negative probes, and canonical state are linked in [the closeout record](FINAL_STEWARD_MORE_INFO_CLOSEOUT.md). The positive live path demonstrates that the current contract code can verify the RSA-signed manifest and enforce admission. It is a distinct lineage and does not update production's existing policy, registry, gate, or frontend.
+The policy-authorized RSA key and issuer attestations supported the historical live ADMITTED candidate, and the gate activated it through finalized messages. The exact deployment, policy, evidence attestations, assessment, admission child, activation, acknowledgment child, negative probes, and canonical state are linked in [the closeout record](FINAL_STEWARD_MORE_INFO_CLOSEOUT.md). That positive live path demonstrates RSA signature verification in the previously deployed contract, but does not establish independent provenance. It is a distinct lineage and does not update production's existing policy, registry, gate, or frontend.
 
 ## Standards and source references
 
